@@ -26,6 +26,8 @@ endif()
 # Тут добавлять библиотеки find_package...
 
 find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(GLUT REQUIRED)
 add_subdirectory(${EXTERNAL_DIR}/glfw)
 
 # Добавляем пути к заголовочным файлам
@@ -39,9 +41,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${INCLUDE_DIR}
     ${EXTERNAL_DIR}/glfw/include
     ${EXTERNAL_DIR}/glm
+    ${GLEW_INCLUDE_DIRS}
+    ${GLUT_INCLUDE_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARY})
+target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY})
 
