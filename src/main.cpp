@@ -28,9 +28,12 @@ float randf()
   return static_cast< float >(rand()) / static_cast< float >(RAND_MAX);
 }
 
+GLfloat x, y, z;
+
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
-void displayTeapot(GLdouble x = 0.0, GLdouble y = 0.0, GLdouble z = 5.0);
+void displayCylindre(GLfloat angle);
+void displaySphere(GLfloat x, GLfloat y, GLfloat z);
 
 int main(int argc, char ** argv)
 {
@@ -58,18 +61,39 @@ int main(int argc, char ** argv)
 
   glfwSetKeyCallback(window, key_callback);
 
-  GLdouble x = 0.0;
-  GLdouble y = 0.0;
-  GLdouble z = 5;
+  GLfloat angle = 0.0f;
+  x = 0.0f;
+  y = 1.5f;
+  z = 1.5f;
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
   {
     // == Начало отрисовки
-    displayTeapot(sin(x) * 10, cos(y) * 1, sin(z + M_PI) * 5); // Вызов функции отображения
-    x += 0.005;
-    y += 0.005;
-    z += 0.005;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0.0f,
+     -3.0f,
+     4.5f, // Camera position
+     0.0f,
+     0.0f,
+     0.0f, // Look at point
+     0.0f,
+     1.0f,
+     0.0f); // Up vector
+
+    // Set up the projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(100.0f, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
+
+    displayCylindre(sin(angle) * 90);
+    angle += 0.001f;
+    displaySphere(x, y, z);
+
+    glFlush();
     // == Конец  отрисовки
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -80,39 +104,37 @@ int main(int argc, char ** argv)
   return 0;
 }
 
-void displayTeapot(GLdouble x, GLdouble y, GLdouble z)
+void displayCylindre(GLfloat angle)
 {
-  // Clear the color buffer and the depth buffer
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  // Set up the view matrix (camera)
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  gluLookAt(x,
-   y,
-   z, // Camera position
-   0.0f,
-   0.0f,
-   0.0f, // Look at point
-   0.0f,
-   1.0f,
-   0.0f); // Up vector
+  glColor3f(1.0f, 0.5f, 0.0f);
 
-  // Set up the projection matrix
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(45.0f, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
+  GLUquadric * quad = gluNewQuadric();
+  glPushMatrix();
+  // glTranslatef(0.0f, -3.0f, -3.f); // Перемещаем цилиндр по оси Y
+  // glRotatef(90.f, 1.0f, 0.0f, 0.0f); // Поворачиваем цилиндр вокруг оси X, чтобы он был вдоль оси Y
+  gluCylinder(quad, 1.0, 1.0, 3.0, 32, 32);
+  glPopMatrix();
+  gluDeleteQuadric(quad);
 
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void displaySphere(GLfloat x, GLfloat y, GLfloat z)
+{
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  // Render a solid teapot
-  glColor3f(1.0f, 0.5f, 0.0f); // Orange color for the teapot
-  glutSolidTeapot(1.0);
+  glColor3f(0.0f, 0.5f, 1.0f);
+
+  GLUquadric * quad = gluNewQuadric();
+  glPushMatrix();
+  glTranslatef(x, y, z); // Перемещаем сферу по оси Y
+  gluSphere(quad, 1.f, 32, 32);
+  glPopMatrix();
+  gluDeleteQuadric(quad);
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-  // Swap the buffers (double buffering)
-  glFlush();
 }
 
 void setupViewport(GLFWwindow * window)
@@ -128,5 +150,29 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
   {
     glfwSetWindowShouldClose(window, GL_TRUE);
+  }
+  if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+  {
+    x -= 0.5f;
+  }
+  if (key == GLFW_KEY_X && action == GLFW_PRESS)
+  {
+    y -= 0.5f;
+  }
+  if (key == GLFW_KEY_C && action == GLFW_PRESS)
+  {
+    z -= 0.5f;
+  }
+  if (key == GLFW_KEY_A && action == GLFW_PRESS)
+  {
+    x += 0.5f;
+  }
+  if (key == GLFW_KEY_S && action == GLFW_PRESS)
+  {
+    y += 0.5f;
+  }
+  if (key == GLFW_KEY_D && action == GLFW_PRESS)
+  {
+    z += 0.5f;
   }
 }
