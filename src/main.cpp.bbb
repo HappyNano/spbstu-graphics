@@ -1,0 +1,96 @@
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <GL/glut.h> // For glutSolidTeapot
+
+// Window dimensions
+const GLuint WIDTH = 800, HEIGHT = 600;
+
+// Function to initialize OpenGL state
+void initOpenGL()
+{
+  // Set the clear color to a dark gray
+  glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+
+  // Enable depth test
+  glEnable(GL_DEPTH_TEST);
+}
+
+// Function to render the teapot
+void renderTeapot()
+{
+  // Clear the color buffer and the depth buffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Set up the view matrix (camera)
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluLookAt(0.0f,
+   0.0f,
+   5.0f, // Camera position
+   0.0f,
+   0.0f,
+   0.0f, // Look at point
+   0.0f,
+   1.0f,
+   0.0f); // Up vector
+
+  // Set up the projection matrix
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(45.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+
+  // Render a solid teapot
+  glColor3f(1.0f, 0.5f, 0.0f); // Orange color for the teapot
+  glutSolidTeapot(1.0);
+
+  // Swap the buffers (double buffering)
+  glFlush();
+}
+
+int main(int argc, char ** argv)
+{
+  // Initialize GLUT (required for glutSolidTeapot)
+  glutInit(&argc, argv);
+  // Initialize GLFW
+  if (!glfwInit())
+  {
+    return -1;
+  }
+
+  // Create a GLFW window
+  GLFWwindow * window = glfwCreateWindow(WIDTH, HEIGHT, "Teapot Example", nullptr, nullptr);
+  if (!window)
+  {
+    glfwTerminate();
+    return -1;
+  }
+
+  // Make the window's OpenGL context current
+  glfwMakeContextCurrent(window);
+
+  // Initialize GLEW (optional, but needed for modern OpenGL)
+  glewExperimental = GL_TRUE;
+  if (glewInit() != GLEW_OK)
+  {
+    return -1;
+  }
+
+  // Initialize OpenGL state
+  initOpenGL();
+
+  // Main render loop
+  while (!glfwWindowShouldClose(window))
+  {
+    // Render the teapot
+    renderTeapot();
+
+    // Swap buffers and poll for window events
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+  }
+
+  // Terminate GLFW
+  glfwTerminate();
+
+  return 0;
+}
