@@ -1,4 +1,4 @@
 .vscode
 .clang-format
 **/build
-lab1
+out

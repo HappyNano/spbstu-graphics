@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "lab1/settings.hpp"
+#include "lab1/material.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -78,9 +79,9 @@ int main(int argc, char ** argv)
   glfwSetScrollCallback(window, scroll_callback);
 
   GLfloat angle = 0.0f;
-  x = 0.0f;
-  y = 0.5f;
-  z = 4.0f;
+  x = 1.0f;
+  y = 1.0f;
+  z = 1.0f;
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -104,6 +105,22 @@ int main(int argc, char ** argv)
     // glMatrixMode(GL_PROJECTION);
     // glLoadIdentity();
     // gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 300.0f);
+
+    // Enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    // Define light properties
+    GLfloat light_position[] = { x, y, z, 1.0f };          // Position of the light
+    GLfloat light_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };  // Ambient light
+    GLfloat light_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };  // Diffuse light
+    GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Specular light
+
+    // Set light properties
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
     displayCylindre();
     displaySphere();
@@ -134,7 +151,7 @@ void displayCylindre()
   glPushMatrix();
   glTranslatef(0.0f, 0.0f, 0.0f);       // Центр в начале координат
   glRotatef(90, 1.0f, 0.0f, 0.0f);      // Цилиндр вертикально
-  glutWireCylinder(0.5f, 1.0f, 16, 16); // Радиус 0.5, высота 1.0
+  glutWireCylinder(0.5f, 1.0f, 32, 32); // Радиус 0.5, высота 1.0
   glPopMatrix();
 }
 
@@ -143,7 +160,7 @@ void displaySphere()
   glColor3f(0.0f, 0.5f, 1.0f);
   glPushMatrix();
   glTranslatef(0.0f, 0.0f, 0.0f); // Центр сферы на оси цилиндра
-  glutWireSphere(0.5f, 16, 16);   // Радиус 0.5
+  glutWireSphere(0.5f, 32, 32);   // Радиус 0.5
   glPopMatrix();
 }
 
@@ -157,14 +174,29 @@ void displayCube()
   glPopMatrix();
 }
 
+void setMaterial(const MaterialConf & material)
+{
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material.ambient);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material.diffuse);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material.specular);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material.shininess);
+}
+
 void displayTor()
 {
-  glColor3f(0.2f, 0.5f, 0.5f);
+  glPushAttrib(GL_LIGHTING_BIT);
   glPushMatrix();
+
+  glEnable(GL_BLEND); // Enable blending
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  setMaterial(MaterialConf{ { 0.5f, 0.2f, 0.7f, 0.3f }, { 0.1f, 0.1f, 0.1f, 0.3f }, { 1.0f, 1.0f, 1.0f, 0.3f }, { 10.0f } });
+
+  glTranslatef(0.3f, 0.0f, 1.0f);
   glRotatef(-10, 1.0f, 1.0f, 0.0f);
-  glTranslatef(1.1f, 0.0f, 0.0f);
-  glutSolidTorus(0.15f, 0.3f, 16, 16);
+  glutSolidTorus(0.1f, 0.2f, 32, 32);
+
   glPopMatrix();
+  glPopAttrib();
 }
 
 void setupViewport(GLFWwindow * window)

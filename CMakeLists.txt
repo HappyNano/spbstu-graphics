@@ -35,9 +35,9 @@ add_subdirectory(${EXTERNAL_DIR}/glfw)
 include(${SRC_DIR}/src.cmake)
 
 # Создаем исполняемый файл
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(out ${SOURCES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(out PRIVATE
     ${INCLUDE_DIR}
     ${EXTERNAL_DIR}/glfw/include
     ${EXTERNAL_DIR}/glm
@@ -45,9 +45,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${GLUT_INCLUDE_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES})
+target_link_libraries(out glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY})
+set_target_properties(out PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY})
 
 # ====================
 
@@ -65,4 +65,4 @@ add_custom_target(
 )
 
 # Добавляем правку кода к цели построения
-add_dependencies(${PROJECT_NAME} clang-format-fix)
+add_dependencies(out clang-format-fix)
