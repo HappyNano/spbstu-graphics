@@ -29,11 +29,26 @@ float randf()
 }
 
 GLfloat x, y, z;
+float fov = 45;
 
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
-void displayCylindre(GLfloat angle);
-void displaySphere(GLfloat x, GLfloat y, GLfloat z);
+void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
+{
+  fov -= (float)yoffset;
+  if (fov < 1.0f)
+  {
+    fov = 1.0f;
+  }
+  if (fov > 90.0f)
+  {
+    fov = 90.0f;
+  }
+}
+void displayCylindre();
+void displaySphere();
+void displayCube();
+void displayTor();
 
 int main(int argc, char ** argv)
 {
@@ -60,11 +75,12 @@ int main(int argc, char ** argv)
   // Программа
 
   glfwSetKeyCallback(window, key_callback);
+  glfwSetScrollCallback(window, scroll_callback);
 
   GLfloat angle = 0.0f;
   x = 0.0f;
-  y = 1.5f;
-  z = 1.5f;
+  y = 0.5f;
+  z = 4.0f;
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -72,26 +88,33 @@ int main(int argc, char ** argv)
     // == Начало отрисовки
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(0.0f,
-     -3.0f,
-     4.5f, // Camera position
-     0.0f,
-     0.0f,
-     0.0f, // Look at point
-     0.0f,
-     1.0f,
-     0.0f); // Up vector
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadIdentity();
+    // gluLookAt(0,
+    //  0,
+    //  0, // Camera position
+    //  0.0f,
+    //  0.0f,
+    //  -1.0f, // Look at point
+    //  0.0f,
+    //  1.0f,
+    //  0.0f); // Up vector
+
+    // // Set up the projection matrix
+    // glMatrixMode(GL_PROJECTION);
+    // glLoadIdentity();
+    // gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 300.0f);
+
+    displayCylindre();
+    displaySphere();
+    displayCube();
+    displayTor();
 
     // Set up the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(100.0f, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
-
-    displayCylindre(sin(angle) * 90);
-    angle += 0.001f;
-    displaySphere(x, y, z);
+    gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 1000.0f);
+    glTranslatef(0.0f, -0.25f, -2.0f);
 
     glFlush();
     // == Конец  отрисовки
@@ -104,37 +127,44 @@ int main(int argc, char ** argv)
   return 0;
 }
 
-void displayCylindre(GLfloat angle)
+void displayCylindre()
 {
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+  static GLfloat angle = 0.0f;
   glColor3f(1.0f, 0.5f, 0.0f);
-
-  GLUquadric * quad = gluNewQuadric();
   glPushMatrix();
-  // glTranslatef(0.0f, -3.0f, -3.f); // Перемещаем цилиндр по оси Y
-  // glRotatef(90.f, 1.0f, 0.0f, 0.0f); // Поворачиваем цилиндр вокруг оси X, чтобы он был вдоль оси Y
-  gluCylinder(quad, 1.0, 1.0, 3.0, 32, 32);
+  glTranslatef(0.0f, 0.0f, 0.0f);       // Центр в начале координат
+  glRotatef(90, 1.0f, 0.0f, 0.0f);      // Цилиндр вертикально
+  glutWireCylinder(0.5f, 1.0f, 16, 16); // Радиус 0.5, высота 1.0
   glPopMatrix();
-  gluDeleteQuadric(quad);
-
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void displaySphere(GLfloat x, GLfloat y, GLfloat z)
+void displaySphere()
 {
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
   glColor3f(0.0f, 0.5f, 1.0f);
-
-  GLUquadric * quad = gluNewQuadric();
   glPushMatrix();
-  glTranslatef(x, y, z); // Перемещаем сферу по оси Y
-  gluSphere(quad, 1.f, 32, 32);
+  glTranslatef(0.0f, 0.0f, 0.0f); // Центр сферы на оси цилиндра
+  glutWireSphere(0.5f, 16, 16);   // Радиус 0.5
   glPopMatrix();
-  gluDeleteQuadric(quad);
+}
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+void displayCube()
+{
+  glColor3f(0.0f, 0.7f, 0.7f);
+  glPushMatrix();
+  glTranslatef(-1.0f, 0.0f, 0.0f);
+  glScalef(0.7f, 0.7f, 0.7f);
+  glutSolidCube(0.5f);
+  glPopMatrix();
+}
+
+void displayTor()
+{
+  glColor3f(0.2f, 0.5f, 0.5f);
+  glPushMatrix();
+  glRotatef(-10, 1.0f, 1.0f, 0.0f);
+  glTranslatef(1.1f, 0.0f, 0.0f);
+  glutSolidTorus(0.15f, 0.3f, 16, 16);
+  glPopMatrix();
 }
 
 void setupViewport(GLFWwindow * window)
@@ -151,28 +181,29 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
   {
     glfwSetWindowShouldClose(window, GL_TRUE);
   }
-  if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+  const float cameraSpeed = 0.05f; // adjust accordingly
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
   {
-    x -= 0.5f;
+    z += cameraSpeed;
   }
-  if (key == GLFW_KEY_X && action == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
   {
-    y -= 0.5f;
+    z -= cameraSpeed;
   }
-  if (key == GLFW_KEY_C && action == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
   {
-    z -= 0.5f;
+    x -= cameraSpeed;
   }
-  if (key == GLFW_KEY_A && action == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
   {
-    x += 0.5f;
+    x += cameraSpeed;
   }
-  if (key == GLFW_KEY_S && action == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
   {
-    y += 0.5f;
+    y -= cameraSpeed;
   }
-  if (key == GLFW_KEY_D && action == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
   {
-    z += 0.5f;
+    y += cameraSpeed;
   }
 }
