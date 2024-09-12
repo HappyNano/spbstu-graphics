@@ -41,6 +41,7 @@ target_include_directories(out PRIVATE
     ${INCLUDE_DIR}
     ${EXTERNAL_DIR}/glfw/include
     ${EXTERNAL_DIR}/glm
+    ${EXTERNAL_DIR}/stb
     ${GLEW_INCLUDE_DIRS}
     ${GLUT_INCLUDE_DIR}
 )
