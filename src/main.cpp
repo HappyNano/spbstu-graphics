@@ -87,7 +87,11 @@ int main(int argc, char ** argv)
   while (!glfwWindowShouldClose(window))
   {
     // == Начало отрисовки
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
 
     // Set up the projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -113,8 +117,8 @@ int main(int argc, char ** argv)
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
     displaySphere();
-    displayCube();
     displayTor();
+    displayCube();
     displayCylindre();
 
     glFlush();
@@ -132,6 +136,9 @@ void displayCylindre()
 {
   glPushAttrib(GL_LIGHTING_BIT);
   glPushMatrix();
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -160,12 +167,19 @@ void displaySphere()
 
 void displayCube()
 {
+  glPushAttrib(GL_LIGHTING_BIT);
   glPushMatrix();
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
   glRotatef(90, 1.0f, 0.0f, 0.0f);
   glTranslatef(-1.0f, 0.0f, 0.0f);
   glScalef(0.7f, 0.7f, 0.7f);
   glutSolidCube(0.5f);
+
   glPopMatrix();
+  glPopAttrib();
 }
 
 void displayTor()
