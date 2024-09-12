@@ -14,6 +14,7 @@
 
 #include "lab1/settings.hpp"
 #include "lab1/material.hpp"
+#include "lab1/texture.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -31,6 +32,8 @@ float randf()
 
 GLfloat x, y, z;
 float fov = 45;
+
+GLuint textureID;
 
 void setMaterial(const MaterialConf & material)
 {
@@ -83,6 +86,11 @@ int main(int argc, char ** argv)
   y = 1.0f;
   z = 1.0f;
 
+  glGenTextures(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+
+  textureID = loadTexture("assets/redstone_block.bmp");
+
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
   {
@@ -126,6 +134,7 @@ int main(int argc, char ** argv)
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+  glDeleteTextures(1, &textureID);
 
   glfwDestroyWindow(window);
   glfwTerminate();
@@ -167,16 +176,82 @@ void displaySphere()
 
 void displayCube()
 {
+  static GLfloat angle = 0.0f;
   glPushAttrib(GL_LIGHTING_BIT);
   glPushMatrix();
+
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, textureID);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  glRotatef(90, 1.0f, 0.0f, 0.0f);
+  glRotatef((sin(angle += 0.001) + 1) * 45.f, 1.0f, 0.0f, 0.0f);
   glTranslatef(-1.0f, 0.0f, 0.0f);
-  glScalef(0.7f, 0.7f, 0.7f);
-  glutSolidCube(0.5f);
+  glScalef(0.5f, 0.5f, 0.5f);
+
+  GLfloat texLeft = 0.0f;
+  GLfloat texRight = 1.0f;
+  GLfloat texBottom = 0.0f;
+  GLfloat texTop = 1.0f;
+  glBegin(GL_QUADS);
+  // Front face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, 0.5f);
+  // Back face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, -0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, -0.5f);
+  // Left face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(-0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(-0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, -0.5f);
+  // Right face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(0.5f, 0.5f, -0.5f);
+  // Top face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, 0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, 0.5f, -0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, 0.5f);
+  // Bottom face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, -0.5f, 0.5f);
+  glEnd();
+
+  glDisable(GL_TEXTURE_2D);
 
   glPopMatrix();
   glPopAttrib();
