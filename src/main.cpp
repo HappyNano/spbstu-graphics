@@ -32,20 +32,19 @@ float randf()
 GLfloat x, y, z;
 float fov = 45;
 
+void setMaterial(const MaterialConf & material)
+{
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material.ambient);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material.diffuse);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material.specular);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material.shininess);
+}
+
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
-void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
-{
-  fov -= (float)yoffset;
-  if (fov < 1.0f)
-  {
-    fov = 1.0f;
-  }
-  if (fov > 90.0f)
-  {
-    fov = 90.0f;
-  }
-}
+void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
+void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
+
 void displayCylindre();
 void displaySphere();
 void displayCube();
@@ -77,6 +76,7 @@ int main(int argc, char ** argv)
 
   glfwSetKeyCallback(window, key_callback);
   glfwSetScrollCallback(window, scroll_callback);
+  glfwSetCursorPosCallback(window, cursor_position_callback);
 
   GLfloat angle = 0.0f;
   x = 1.0f;
@@ -89,30 +89,20 @@ int main(int argc, char ** argv)
     // == Начало отрисовки
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
-    // gluLookAt(0,
-    //  0,
-    //  0, // Camera position
-    //  0.0f,
-    //  0.0f,
-    //  -1.0f, // Look at point
-    //  0.0f,
-    //  1.0f,
-    //  0.0f); // Up vector
+    // Set up the projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 1000.0f);
+    glTranslatef(0.0f, -0.25f, -2.0f);
 
-    // // Set up the projection matrix
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
-    // gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 300.0f);
-
+    glEnable(GL_DEPTH_TEST);
     // Enable lighting
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
     // Define light properties
     GLfloat light_position[] = { x, y, z, 1.0f };          // Position of the light
-    GLfloat light_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };  // Ambient light
+    GLfloat light_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Ambient light
     GLfloat light_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };  // Diffuse light
     GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Specular light
 
@@ -122,16 +112,10 @@ int main(int argc, char ** argv)
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
-    displayCylindre();
     displaySphere();
     displayCube();
     displayTor();
-
-    // Set up the projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 1000.0f);
-    glTranslatef(0.0f, -0.25f, -2.0f);
+    displayCylindre();
 
     glFlush();
     // == Конец  отрисовки
@@ -146,40 +130,42 @@ int main(int argc, char ** argv)
 
 void displayCylindre()
 {
-  static GLfloat angle = 0.0f;
-  glColor3f(1.0f, 0.5f, 0.0f);
+  glPushAttrib(GL_LIGHTING_BIT);
   glPushMatrix();
-  glTranslatef(0.0f, 0.0f, 0.0f);       // Центр в начале координат
-  glRotatef(90, 1.0f, 0.0f, 0.0f);      // Цилиндр вертикально
-  glutWireCylinder(0.5f, 1.0f, 32, 32); // Радиус 0.5, высота 1.0
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  setMaterial(MaterialConf{ { 0.2f, 0.2f, 0.2f, 0.4f }, { 0.1f, 0.1f, 0.1f, 0.4f }, { 0.0f, 0.0f, 0.0f, 0.4f }, { 5.0f } });
+
+  glTranslatef(0.0f, 0.0f, 0.0f);
+  glRotatef(90, 1.0f, 0.0f, 0.0f);
+  glutSolidCylinder(0.5f, 1.0f, 128, 128);
+
   glPopMatrix();
+  glPopAttrib();
 }
 
 void displaySphere()
 {
-  glColor3f(0.0f, 0.5f, 1.0f);
+  glPushAttrib(GL_LIGHTING_BIT);
   glPushMatrix();
-  glTranslatef(0.0f, 0.0f, 0.0f); // Центр сферы на оси цилиндра
-  glutWireSphere(0.5f, 32, 32);   // Радиус 0.5
+
+  setMaterial(MaterialConf{ { 0.0f, 0.7f, 0.3f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 5.0f } });
+  glTranslatef(0.0f, 1.0f, 0.0f);
+  glutSolidSphere(0.5f, 32, 32);
+
   glPopMatrix();
+  glPopAttrib();
 }
 
 void displayCube()
 {
-  glColor3f(0.0f, 0.7f, 0.7f);
   glPushMatrix();
+  glRotatef(90, 1.0f, 0.0f, 0.0f);
   glTranslatef(-1.0f, 0.0f, 0.0f);
   glScalef(0.7f, 0.7f, 0.7f);
   glutSolidCube(0.5f);
   glPopMatrix();
-}
-
-void setMaterial(const MaterialConf & material)
-{
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material.ambient);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material.diffuse);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material.specular);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material.shininess);
 }
 
 void displayTor()
@@ -187,13 +173,14 @@ void displayTor()
   glPushAttrib(GL_LIGHTING_BIT);
   glPushMatrix();
 
-  glEnable(GL_BLEND); // Enable blending
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  setMaterial(MaterialConf{ { 0.5f, 0.2f, 0.7f, 0.3f }, { 0.1f, 0.1f, 0.1f, 0.3f }, { 1.0f, 1.0f, 1.0f, 0.3f }, { 10.0f } });
+  setMaterial(MaterialConf{ { 0.5f, 0.2f, 0.7f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 5.0f } });
 
-  glTranslatef(0.3f, 0.0f, 1.0f);
-  glRotatef(-10, 1.0f, 1.0f, 0.0f);
-  glutSolidTorus(0.1f, 0.2f, 32, 32);
+  glTranslatef(0.3f, 0.2f, 1.0f);
+  glRotatef(20, 0.0f, 0.0f, 1.0f);
+  glRotatef(20, 0.0f, 1.0f, 0.0f);
+  glRotatef(-20, 1.0f, 0.0f, 0.0f);
+  glTranslatef(0.3f, 0.2f, -2.0f);
+  glutSolidTorus(0.3f, 0.6f, 32, 32);
 
   glPopMatrix();
   glPopAttrib();
@@ -214,28 +201,32 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
     glfwSetWindowShouldClose(window, GL_TRUE);
   }
   const float cameraSpeed = 0.05f; // adjust accordingly
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-  {
-    z += cameraSpeed;
-  }
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
   {
     z -= cameraSpeed;
   }
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
   {
-    x -= cameraSpeed;
+    z += cameraSpeed;
   }
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+}
+
+void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
+{
+  fov -= (float)yoffset;
+  if (fov < 1.0f)
   {
-    x += cameraSpeed;
+    fov = 1.0f;
   }
-  if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+  if (fov > 90.0f)
   {
-    y -= cameraSpeed;
+    fov = 90.0f;
   }
-  if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-  {
-    y += cameraSpeed;
-  }
+}
+
+void cursor_position_callback(GLFWwindow * window, double xpos, double ypos)
+{
+  // std::cout << xpos << ' ' << ypos << '\n';
+  x = (xpos / W_WIDTH - 1 / 2.0f) * 0.8;
+  y = 0.25f + (0.5 / 2.0f - ypos / W_HEIGHT) * 2;
 }
