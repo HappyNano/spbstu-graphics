@@ -168,7 +168,7 @@ void displaySphere()
 
   setMaterial(MaterialConf{ { 0.0f, 0.7f, 0.3f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 5.0f } });
   glTranslatef(0.0f, 1.0f, 0.0f);
-  glutSolidSphere(0.5f, 32, 32);
+  glutSolidSphere(0.5f, 128, 128);
 
   glPopMatrix();
   glPopAttrib();
@@ -269,7 +269,7 @@ void displayTor()
   glRotatef(20, 0.0f, 1.0f, 0.0f);
   glRotatef(-20, 1.0f, 0.0f, 0.0f);
   glTranslatef(0.3f, 0.2f, -2.0f);
-  glutSolidTorus(0.3f, 0.6f, 32, 32);
+  glutSolidTorus(0.3f, 0.6f, 128, 128);
 
   glPopMatrix();
   glPopAttrib();
