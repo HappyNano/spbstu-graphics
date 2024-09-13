@@ -31,6 +31,7 @@ float randf()
 }
 
 GLfloat x, y, z;
+GLfloat r, g, b;
 float fov = 45;
 
 GLuint textureID;
@@ -85,6 +86,9 @@ int main(int argc, char ** argv)
   x = 1.0f;
   y = 1.0f;
   z = 1.0f;
+  r = 1.0f;
+  g = 1.0f;
+  b = 1.0f;
 
   glGenTextures(1, &textureID);
   glBindTexture(GL_TEXTURE_2D, textureID);
@@ -114,7 +118,7 @@ int main(int argc, char ** argv)
 
     // Define light properties
     GLfloat light_position[] = { x, y, z, 1.0f };          // Position of the light
-    GLfloat light_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Ambient light
+    GLfloat light_ambient[] = { r, g, b, 1.0f };           // Ambient light
     GLfloat light_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };  // Diffuse light
     GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Specular light
 
@@ -297,6 +301,24 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
   {
     z += cameraSpeed;
+  }
+  if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+  {
+    r = 1.0f;
+    g = 0.0f;
+    b = 0.0f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+  {
+    r = 0.0f;
+    g = 1.0f;
+    b = 0.0f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+  {
+    r = 0.0f;
+    g = 0.0f;
+    b = 1.0f;
   }
 }
 
