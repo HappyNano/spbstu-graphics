@@ -187,14 +187,14 @@ void displayCube()
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, textureID);
 
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+  // glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   // glColor4f(0.8f, 0.1f, 0.1f, 1.0f);
 
-  setMaterial(MaterialConf{ { 0.7f, 0.4f, 0.1f, 1.0f }, { 0.2f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 5.0f } });
+  // setMaterial(MaterialConf{ { 0.7f, 0.4f, 0.1f, 1.0f }, { 0.2f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f } });
 
   glRotatef((sin(angle += 0.001) + 1) * 45.f, 1.0f, 0.0f, 0.0f);
   glTranslatef(-1.0f, 0.0f, 0.0f);
