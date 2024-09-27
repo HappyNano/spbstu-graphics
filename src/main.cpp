@@ -15,6 +15,7 @@
 #include "lab1/settings.hpp"
 #include "lab1/material.hpp"
 #include "lab1/texture.hpp"
+#include "lab1/shaders.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -49,6 +50,7 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
 
+void displaySurface();
 void displayCylindre();
 void displaySphere();
 void displayCube();
@@ -94,6 +96,31 @@ int main(int argc, char ** argv)
   glBindTexture(GL_TEXTURE_2D, textureID);
 
   textureID = loadTexture("assets/redstone_block.bmp");
+  GLuint shaderProgram = addShared("src/shaders/shading.vert", "src/shaders/shading.frag");
+
+  GLfloat vertices[] = {
+    // Позиции         // Цвета
+    0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // Нижний правый угол
+    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // Нижний левый угол
+    0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f    // Верхний угол
+  };
+  GLuint VBO, VAO;
+  glGenVertexArrays(1, &VAO);
+  glGenBuffers(1, &VBO);
+  // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+  glBindVertexArray(VAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  // Атрибут с координатами
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+  glEnableVertexAttribArray(0);
+  // Атрибут с цветом
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0); // Unbind VAO
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -105,33 +132,49 @@ int main(int argc, char ** argv)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    // Set up the projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 1000.0f);
-    glTranslatef(0.0f, -0.25f, -2.0f);
+    // // Set up the projection matrix
+    // glMatrixMode(GL_PROJECTION);
+    // glLoadIdentity();
+    // gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 1000.0f);
+    // glTranslatef(0.0f, -0.25f, -2.0f);
 
-    glEnable(GL_DEPTH_TEST);
-    // Enable lighting
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    // glEnable(GL_DEPTH_TEST);
+    // // Enable lighting
+    // glEnable(GL_LIGHTING);
+    // glEnable(GL_LIGHT0);
 
-    // Define light properties
-    GLfloat light_position[] = { x, y, z, 1.0f };          // Position of the light
-    GLfloat light_ambient[] = { r, g, b, 1.0f };           // Ambient light
-    GLfloat light_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };  // Diffuse light
-    GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Specular light
+    // // Define light properties
+    // GLfloat light_position[] = { x, y, z, 1.0f };          // Position of the light
+    // GLfloat light_ambient[] = { r, g, b, 1.0f };           // Ambient light
+    // GLfloat light_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };  // Diffuse light
+    // GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Specular light
 
-    // Set light properties
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    // // Set light properties
+    // glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    // glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    // glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    // glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
-    displaySphere();
-    displayTor();
-    displayCube();
-    displayCylindre();
+    // displaySurface();
+
+    // displaySphere();
+    // displayTor();
+    // displayCube();
+    // displayCylindre();
+
+    // Активируем шейдерную программу
+    glUseProgram(shaderProgram);
+
+    // Обновляем цвет формы
+    GLfloat timeValue = glfwGetTime();
+    GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
+    GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+    // Рисуем треугольник
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
 
     glFlush();
     // == Конец  отрисовки
@@ -143,6 +186,29 @@ int main(int argc, char ** argv)
   glfwDestroyWindow(window);
   glfwTerminate();
   return 0;
+}
+
+void displaySurface()
+{
+  glPushAttrib(GL_LIGHTING_BIT);
+  glPushMatrix();
+
+  glEnable(GL_BLEND);
+  setMaterial(MaterialConf{ { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 5.0f } });
+
+  glTranslatef(0.0f, 0.0f, -6.0f);
+  // glRotatef(90, 0.0f, 0.0f, -3.0f);
+
+  glBegin(GL_QUADS);
+  GLfloat size = 4.0f;
+  glVertex3f(-size, -size, size);
+  glVertex3f(size, -size, size);
+  glVertex3f(size, size, size);
+  glVertex3f(-size, size, size);
+  glEnd();
+
+  glPopMatrix();
+  glPopAttrib();
 }
 
 void displayCylindre()
