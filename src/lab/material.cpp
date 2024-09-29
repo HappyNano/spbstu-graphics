@@ -1,4 +1,4 @@
-#include "lab1/material.hpp"
+#include "lab/material.hpp"
 
 MaterialConf::MaterialConf(const std::array< GLfloat, 4 > & _ambient, const std::array< GLfloat, 4 > & _diffuse,
  const std::array< GLfloat, 4 > & _specular, const std::array< GLfloat, 1 > & _shininess):

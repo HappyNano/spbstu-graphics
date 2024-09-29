@@ -1,4 +1,4 @@
-#include "lab1/shaders.hpp"
+#include "lab/shaders.hpp"
 
 #include <iostream>
 #include <iterator>

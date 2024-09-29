@@ -1,6 +1,7 @@
 #include <iostream>
 #include <functional>
 #include <string>
+#include <memory>
 
 // Подключение GLAD до GLFW
 #include "glad/glad.h"
@@ -12,11 +13,14 @@
 #include <math.h>
 #include <unistd.h>
 
-#include "lab1/settings.hpp"
-#include "lab1/material.hpp"
-#include "lab1/texture.hpp"
-#include "lab1/shaders.hpp"
-#include "lab1/camera.hpp"
+#include "lab/settings.hpp"
+#include "lab/material.hpp"
+#include "lab/texture.hpp"
+#include "lab/shaders.hpp"
+#include "lab/camera.hpp"
+
+#include "lab/figures/surface.hpp"
+#include "lab/figures/cube.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -32,17 +36,17 @@ float randf()
   return static_cast< float >(rand()) / static_cast< float >(RAND_MAX);
 }
 
-GLfloat x, y, z;
-GLfloat r, g, b;
-float fov = 45;
-
 GLuint textureID;
+
+// shadow conf
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = (float)W_WIDTH / 2.0;
 float lastY = (float)W_HEIGHT / 2.0;
 bool firstMouse = true;
+bool lclick = false;
 
 // meshes
 unsigned int planeVAO;
@@ -50,6 +54,10 @@ unsigned int planeVAO;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+// figures
+std::unique_ptr< Figure > surface;
+std::unique_ptr< Figure > cube;
 
 void setMaterial(const MaterialConf & material)
 {
@@ -96,48 +104,18 @@ int main(int argc, char ** argv)
   glfwSetKeyCallback(window, key_callback);
   glfwSetScrollCallback(window, scroll_callback);
   glfwSetCursorPosCallback(window, cursor_position_callback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   // Подключение шейдеров и текстур
   textureID = loadTexture("assets/wood.png");
   Shader shader("src/shaders/shading.vert", "src/shaders/shading.frag");
   Shader simpleDepthShader("src/shaders/depth.vert", "src/shaders/depth.frag");
-  Shader debugDepthQuad("src/shaders/debug_quad.vert", "src/shaders/debug_quad.frag");
 
-  // set up vertex data (and buffer(s)) and configure vertex attributes
-  // ------------------------------------------------------------------
-  float planeVertices[] = {
-    // positions            // normals         // texcoords
-    25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,   //
-    -25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,   //
-    -25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f, //
-
-    25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,   //
-    -25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f, //
-    25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 25.0f  //
-  };
-  // plane VAO
-  unsigned int planeVBO;
-  glGenVertexArrays(1, &planeVAO);
-  glGenBuffers(1, &planeVBO);
-  glBindVertexArray(planeVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-  glBindVertexArray(0);
-
-  // configure depth map FBO
+  // Создаем и настраиваем карту глубины FBO
   // -----------------------
-  unsigned int depthMapFBO;
+  unsigned int depthMapFBO, depthMap;
   glGenFramebuffers(1, &depthMapFBO);
 
-  const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-
-  unsigned int depthMap;
   glGenTextures(1, &depthMap);
   glBindTexture(GL_TEXTURE_2D, depthMap);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -160,14 +138,16 @@ int main(int argc, char ** argv)
   // --------------------
   shader.use();
   shader.setInt("diffuseTexture", 0);
-  shader.setInt("shadowMap", 1);
-
-  debugDepthQuad.use();
-  debugDepthQuad.setInt("depthMap", 0);
+  shader.setInt("shadowMap", depthMapFBO);
 
   // lighting info
   // -------------
-  glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+  glm::vec3 lightPos(-2.0f, 2.0f, -1.0f);
+
+  // Figures creating
+  // ----------------
+  surface = std::make_unique< Surface >();
+  cube = std::make_unique< Cube >();
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -180,7 +160,7 @@ int main(int argc, char ** argv)
 
     // render
     // ------
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Цвет фона
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // 1. сначала рисуем карту глубины
@@ -200,8 +180,12 @@ int main(int argc, char ** argv)
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID); // ??
+
+    glCullFace(GL_FRONT);
     renderScene(simpleDepthShader);
+    glCullFace(GL_BACK);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // 2. рисуем сцену как обычно с тенями (используя карту глубины)
@@ -224,30 +208,13 @@ int main(int argc, char ** argv)
     glBindTexture(GL_TEXTURE_2D, depthMap);
     renderScene(shader);
 
-    // render Depth map to quad for visual debugging
-    // ---------------------------------------------
-    debugDepthQuad.use();
-    debugDepthQuad.setFloat("near_plane", near_plane);
-    debugDepthQuad.setFloat("far_plane", far_plane);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-
-    // Обновляем цвет формы
-    // GLfloat timeValue = glfwGetTime();
-    // GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
-    // shader.setVec4("ourColor", glm::vec4{ 0.0f, greenValue, 0.0f, 1.0f });
-
-    // Рисуем треугольник
-    // glBindVertexArray(VAO);
-    // glDrawArrays(GL_TRIANGLES, 0, 3);
-    // glBindVertexArray(0);
-
     glFlush();
     // == Конец  отрисовки
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
   glDeleteTextures(1, &textureID);
+  glDeleteTextures(1, &depthMap);
 
   glfwDestroyWindow(window);
   glfwTerminate();
@@ -262,114 +229,18 @@ void ConfigureShaderAndMatrices()
   gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 1000.0f);
   glTranslatef(0.0f, -0.25f, -2.0f);
 }
-unsigned int cubeVAO = 0;
-unsigned int cubeVBO = 0;
+
 void renderScene(Shader & shader)
 {
   // floor
   glm::mat4 model = glm::mat4(1.0f);
   shader.setMat4("model", model);
-  glBindVertexArray(planeVAO);
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-  // displaySurface(shader);
+  surface->render();
 
-  // displaySphere(shader);
-  // displayTor();
-  if (cubeVAO == 0)
-  {
-    float vertices[] = {
-      // back face
-      -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-      1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,   // top-right
-      1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,  // bottom-right
-      1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,   // top-right
-      -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-      -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,  // top-left
-      // front face
-      -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-      1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
-      1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,   // top-right
-      1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,   // top-right
-      -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // top-left
-      -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-      // left face
-      -1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-right
-      -1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top-left
-      -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-      -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-      -1.0f, -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
-      -1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-right
-                                                          // right face
-      1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,     // top-left
-      1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,   // bottom-right
-      1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,    // top-right
-      1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,   // bottom-right
-      1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,     // top-left
-      1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,    // bottom-left
-      // bottom face
-      -1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-      1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,  // top-left
-      1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom-left
-      1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom-left
-      -1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
-      -1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-      // top face
-      -1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
-      1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // bottom-right
-      1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  // top-right
-      1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // bottom-right
-      -1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
-      -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f   // bottom-left
-    };
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &cubeVBO);
-    // fill buffer
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // link vertex attributes
-    glBindVertexArray(cubeVAO);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-  }
-  // render Cube
-  glBindVertexArray(cubeVAO);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
-  glBindVertexArray(0);
-  // displayCube(shader);
-  // displayCylindre();
-}
-
-void displaySurface(Shader & shader)
-{
-  glm::mat4 model = glm::mat4(1.0f);
-
-  glPushAttrib(GL_LIGHTING_BIT);
-  glPushMatrix();
-
-  glEnable(GL_BLEND);
-  setMaterial(MaterialConf{ { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 5.0f } });
-
-  // glTranslatef(0.0f, 0.0f, -6.0f);
-  model = glm::translate(model, glm::vec3(0.0f, 0.0f, -6.0f));
+  // cube
+  model = glm::mat4(1.0f);
   shader.setMat4("model", model);
-  // glRotatef(90, 0.0f, 0.0f, -3.0f);
-
-  glBegin(GL_QUADS);
-  GLfloat size = 4.0f;
-  glVertex3f(-size, -size, size);
-  glVertex3f(size, -size, size);
-  glVertex3f(size, size, size);
-  glVertex3f(-size, size, size);
-  glEnd();
-
-  glPopMatrix();
-  glPopAttrib();
+  cube->render();
 }
 
 void displayCylindre()
@@ -561,6 +432,10 @@ void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
 
 void cursor_position_callback(GLFWwindow * window, double xposIn, double yposIn)
 {
+  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
+  {
+    return;
+  }
   float xpos = static_cast< float >(xposIn);
   float ypos = static_cast< float >(yposIn);
   if (firstMouse)

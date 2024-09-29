@@ -1,4 +1,4 @@
-#include "lab1/camera.hpp"
+#include "lab/camera.hpp"
 
 // constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch):
