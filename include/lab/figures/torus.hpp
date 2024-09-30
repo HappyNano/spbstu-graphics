@@ -13,8 +13,7 @@ class Torus final: public Figure
   void render() override;
 
  private:
-  size_t vert_count = 0;
-  std::vector< float > vertices;
+  size_t _vertices_count = 0;
 };
 
 #endif

@@ -8,6 +8,8 @@ Cylindre::Cylindre(float radius, float height)
 {
   const int sides = 128;
 
+  std::vector< float > vertices;
+
   // put side vertices to arrays
   const float theta = 2. * M_PI / (float)sides;
   float c = std::cos(theta), s = std::sin(theta);
@@ -29,6 +31,8 @@ Cylindre::Cylindre(float radius, float height)
     z2 = s * x3 + c * z2;
   }
 
+  _vertices_count = vertices.size() / 8;
+
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
   // fill buffer
@@ -49,6 +53,6 @@ Cylindre::Cylindre(float radius, float height)
 void Cylindre::render()
 {
   glBindVertexArray(VAO);
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices.size());
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertices_count);
   glBindVertexArray(0);
 }

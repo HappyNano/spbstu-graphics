@@ -13,7 +13,7 @@ class Cylindre final: public Figure
   void render() override;
 
  private:
-  std::vector< float > vertices;
+  size_t _vertices_count = 0;
 };
 
 #endif
