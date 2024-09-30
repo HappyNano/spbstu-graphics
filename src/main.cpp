@@ -79,12 +79,6 @@ void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
 void ConfigureShaderAndMatrices();
 void renderScene(Shader & shader);
 
-void displaySurface(Shader & shader);
-void displayCylindre();
-void displaySphere(Shader & shader);
-void displayCube(Shader & shader);
-void displayTor();
-
 int main(int argc, char ** argv)
 {
   glutInit(&argc, argv); // Инициализация GLUT
@@ -140,15 +134,25 @@ int main(int argc, char ** argv)
   // -----------
   glEnable(GL_DEPTH_TEST);
 
+  // lighting info
+  // -------------
+  glm::vec3 lightPos(-5.0f, 4.0f, -1.0f);
+
+  glm::mat4 lightProjection, lightView;
+  glm::mat4 lightSpaceMatrix;
+  float near_plane = 1.0f, far_plane = 7.5f;
+  lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+  lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+  lightSpaceMatrix = lightProjection * lightView;
+
   // shader configuration
   // --------------------
   shader.use();
   shader.setInt("diffuseTexture", 0);
   shader.setInt("shadowMap", depthMapFBO);
 
-  // lighting info
-  // -------------
-  glm::vec3 lightPos(-5.0f, 4.0f, -1.0f);
+  shader.setVec3("lightPos", lightPos); // Менять параметры при изменении положения света
+  shader.setMat4("lightSpaceMatrix", lightSpaceMatrix); // -- || --
 
   // Figures creating
   // ----------------
@@ -157,11 +161,31 @@ int main(int argc, char ** argv)
   cylindre = std::make_unique< Cylindre >(0.5f, 2.0f);
   torus = std::make_unique< Torus >(0.5f, 1.0f);
 
+  // 1. сначала рисуем карту глубины
+  // -------------------------------
+  simpleDepthShader.use();
+  simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+  glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textureID); // ??
+
+  glCullFace(GL_FRONT);
+  renderScene(simpleDepthShader);
+  glCullFace(GL_BACK);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  setupViewport(window); // reset viewport
+
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
   {
     // per-frame time logic
     // --------------------
+    glfwPollEvents();
+
     float currentFrame = static_cast< float >(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
@@ -171,36 +195,7 @@ int main(int argc, char ** argv)
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Цвет фона
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // 1. сначала рисуем карту глубины
-    // -------------------------------
-
-    glm::mat4 lightProjection, lightView;
-    glm::mat4 lightSpaceMatrix;
-    float near_plane = 1.0f, far_plane = 7.5f;
-    lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-    lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-    lightSpaceMatrix = lightProjection * lightView;
-    // render scene from light's point of view
-    simpleDepthShader.use();
-    simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID); // ??
-
-    glCullFace(GL_FRONT);
-    renderScene(simpleDepthShader);
-    glCullFace(GL_BACK);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     // 2. рисуем сцену как обычно с тенями (используя карту глубины)
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    setupViewport(window); // reset viewport
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     shader.use();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 100.0f);
     glm::mat4 view = camera.GetViewMatrix();
@@ -208,8 +203,6 @@ int main(int argc, char ** argv)
     shader.setMat4("view", view);
     // set light uniforms
     shader.setVec3("viewPos", camera.Position);
-    shader.setVec3("lightPos", lightPos);
-    shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glActiveTexture(GL_TEXTURE1);
@@ -219,10 +212,11 @@ int main(int argc, char ** argv)
     glFlush();
     // == Конец  отрисовки
     glfwSwapBuffers(window);
-    glfwPollEvents();
   }
   glDeleteTextures(1, &textureID);
   glDeleteTextures(1, &depthMap);
+
+  glDeleteFramebuffers(1, &depthMapFBO);
 
   glfwDestroyWindow(window);
   glfwTerminate();
@@ -263,155 +257,6 @@ void renderScene(Shader & shader)
   model = glm::rotate(model, glm::radians(25.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
   shader.setMat4("model", model);
   torus->render();
-}
-
-void displayCylindre()
-{
-  glPushAttrib(GL_LIGHTING_BIT);
-  glPushMatrix();
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  setMaterial(MaterialConf{ { 0.2f, 0.2f, 0.2f, 0.4f }, { 0.1f, 0.1f, 0.1f, 0.4f }, { 0.0f, 0.0f, 0.0f, 0.4f }, { 5.0f } });
-
-  glTranslatef(0.0f, 0.0f, 0.0f);
-  glRotatef(90, 1.0f, 0.0f, 0.0f);
-  glutSolidCylinder(0.5f, 1.0f, 128, 128);
-
-  glPopMatrix();
-  glPopAttrib();
-}
-
-void displaySphere(Shader & shader)
-{
-  glm::mat4 model = glm::mat4(1.0f);
-
-  glPushAttrib(GL_LIGHTING_BIT);
-  glPushMatrix();
-
-  setMaterial(MaterialConf{ { 0.0f, 0.7f, 0.3f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 5.0f } });
-  glTranslatef(0.0f, 1.0f, 0.0f);
-  glutSolidSphere(0.5f, 128, 128);
-
-  glPopMatrix();
-  glPopAttrib();
-}
-
-void displayCube(Shader & shader)
-{
-  glm::mat4 model = glm::mat4(1.0f);
-
-  static GLfloat angle = 0.0f;
-  glPushAttrib(GL_LIGHTING_BIT | GL_TEXTURE_BIT);
-  glPushMatrix();
-
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, textureID);
-
-  // glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  // glColor4f(0.8f, 0.1f, 0.1f, 1.0f);
-
-  // setMaterial(MaterialConf{ { 0.7f, 0.4f, 0.1f, 1.0f }, { 0.2f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f } });
-
-  // glRotatef((sin(angle += 0.001) + 1) * 45.f, 1.0f, 0.0f, 0.0f);
-  // glTranslatef(-1.0f, 0.0f, 0.0f);
-  // glScalef(0.5f, 0.5f, 0.5f);
-
-  model = glm::rotate(model, glm::radians((sin(angle += 0.001) + 1) * 45.f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
-  model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 0.0f));
-  model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
-  shader.setMat4("model", model);
-
-  GLfloat texLeft = 0.0f;
-  GLfloat texRight = 1.0f;
-  GLfloat texBottom = 0.0f;
-  GLfloat texTop = 1.0f;
-  glBegin(GL_QUADS);
-  // Front face
-  glTexCoord2f(texLeft, texBottom);
-  glVertex3f(-0.5f, -0.5f, 0.5f);
-  glTexCoord2f(texRight, texBottom);
-  glVertex3f(0.5f, -0.5f, 0.5f);
-  glTexCoord2f(texRight, texTop);
-  glVertex3f(0.5f, 0.5f, 0.5f);
-  glTexCoord2f(texLeft, texTop);
-  glVertex3f(-0.5f, 0.5f, 0.5f);
-  // Back face
-  glTexCoord2f(texLeft, texBottom);
-  glVertex3f(-0.5f, -0.5f, -0.5f);
-  glTexCoord2f(texRight, texBottom);
-  glVertex3f(0.5f, -0.5f, -0.5f);
-  glTexCoord2f(texRight, texTop);
-  glVertex3f(0.5f, 0.5f, -0.5f);
-  glTexCoord2f(texLeft, texTop);
-  glVertex3f(-0.5f, 0.5f, -0.5f);
-  // Left face
-  glTexCoord2f(texLeft, texBottom);
-  glVertex3f(-0.5f, -0.5f, -0.5f);
-  glTexCoord2f(texRight, texBottom);
-  glVertex3f(-0.5f, -0.5f, 0.5f);
-  glTexCoord2f(texRight, texTop);
-  glVertex3f(-0.5f, 0.5f, 0.5f);
-  glTexCoord2f(texLeft, texTop);
-  glVertex3f(-0.5f, 0.5f, -0.5f);
-  // Right face
-  glTexCoord2f(texLeft, texBottom);
-  glVertex3f(0.5f, -0.5f, -0.5f);
-  glTexCoord2f(texRight, texBottom);
-  glVertex3f(0.5f, -0.5f, 0.5f);
-  glTexCoord2f(texRight, texTop);
-  glVertex3f(0.5f, 0.5f, 0.5f);
-  glTexCoord2f(texLeft, texTop);
-  glVertex3f(0.5f, 0.5f, -0.5f);
-  // Top face
-  glTexCoord2f(texLeft, texBottom);
-  glVertex3f(-0.5f, 0.5f, -0.5f);
-  glTexCoord2f(texRight, texBottom);
-  glVertex3f(0.5f, 0.5f, -0.5f);
-  glTexCoord2f(texRight, texTop);
-  glVertex3f(0.5f, 0.5f, 0.5f);
-  glTexCoord2f(texLeft, texTop);
-  glVertex3f(-0.5f, 0.5f, 0.5f);
-  // Bottom face
-  glTexCoord2f(texLeft, texBottom);
-  glVertex3f(-0.5f, -0.5f, -0.5f);
-  glTexCoord2f(texRight, texBottom);
-  glVertex3f(0.5f, -0.5f, -0.5f);
-  glTexCoord2f(texRight, texTop);
-  glVertex3f(0.5f, -0.5f, 0.5f);
-  glTexCoord2f(texLeft, texTop);
-  glVertex3f(-0.5f, -0.5f, 0.5f);
-  glEnd();
-
-  glDisable(GL_TEXTURE_2D);
-
-  glPopMatrix();
-  glPopAttrib();
-}
-
-void displayTor()
-{
-  glPushAttrib(GL_LIGHTING_BIT);
-  glPushMatrix();
-
-  setMaterial(MaterialConf{ { 0.5f, 0.2f, 0.7f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 5.0f } });
-
-  glTranslatef(0.3f, 0.2f, 1.0f);
-  glRotatef(20, 0.0f, 0.0f, 1.0f);
-  glRotatef(20, 0.0f, 1.0f, 0.0f);
-  glRotatef(-20, 1.0f, 0.0f, 0.0f);
-  glTranslatef(0.3f, 0.2f, -2.0f);
-  glutSolidTorus(0.3f, 0.6f, 128, 128);
-
-  glPopMatrix();
-  glPopAttrib();
 }
 
 void setupViewport(GLFWwindow * window)
