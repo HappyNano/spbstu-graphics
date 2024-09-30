@@ -21,6 +21,8 @@
 
 #include "lab/figures/surface.hpp"
 #include "lab/figures/cube.hpp"
+#include "lab/figures/cylindre.hpp"
+#include "lab/figures/torus.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -42,7 +44,7 @@ GLuint textureID;
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
 float lastX = (float)W_WIDTH / 2.0;
 float lastY = (float)W_HEIGHT / 2.0;
 bool firstMouse = true;
@@ -58,6 +60,8 @@ float lastFrame = 0.0f;
 // figures
 std::unique_ptr< Figure > surface;
 std::unique_ptr< Figure > cube;
+std::unique_ptr< Figure > cylindre;
+std::unique_ptr< Figure > torus;
 
 void setMaterial(const MaterialConf & material)
 {
@@ -119,10 +123,12 @@ int main(int argc, char ** argv)
   glGenTextures(1, &depthMap);
   glBindTexture(GL_TEXTURE_2D, depthMap);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
@@ -142,12 +148,14 @@ int main(int argc, char ** argv)
 
   // lighting info
   // -------------
-  glm::vec3 lightPos(-2.0f, 2.0f, -1.0f);
+  glm::vec3 lightPos(-5.0f, 4.0f, -1.0f);
 
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
   cube = std::make_unique< Cube >();
+  cylindre = std::make_unique< Cylindre >(0.5f, 2.0f);
+  torus = std::make_unique< Torus >(0.5f, 1.0f);
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -241,6 +249,20 @@ void renderScene(Shader & shader)
   model = glm::mat4(1.0f);
   shader.setMat4("model", model);
   cube->render();
+
+  // cylindre
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(-2.0f, 0.0f, 1.0f));
+  shader.setMat4("model", model);
+  cylindre->render();
+
+  // torus
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(-4.0f, 1.5f, -3.0f));
+  model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 0.0)));
+  model = glm::rotate(model, glm::radians(25.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
+  shader.setMat4("model", model);
+  torus->render();
 }
 
 void displayCylindre()
