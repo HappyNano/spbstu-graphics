@@ -58,6 +58,9 @@ unsigned int planeVAO;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// lighting info
+glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
+
 // figures
 std::unique_ptr< Figure > surface;
 std::unique_ptr< Figure > cube;
@@ -136,17 +139,6 @@ int main(int argc, char ** argv)
   // -----------
   glEnable(GL_DEPTH_TEST);
 
-  // lighting info
-  // -------------
-  glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
-
-  glm::mat4 lightProjection, lightView;
-  glm::mat4 lightSpaceMatrix;
-  float near_plane = 1.0f, far_plane = 14.5f;
-  lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-  lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-  lightSpaceMatrix = lightProjection * lightView;
-
   // shader configuration
   // --------------------
   shader.use();
@@ -156,9 +148,6 @@ int main(int argc, char ** argv)
   // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   shader.setVec3("lightColor", glm::vec3(0.6));
 
-  shader.setVec3("lightPos", lightPos); // Менять параметры при изменении положения света
-  shader.setMat4("lightSpaceMatrix", lightSpaceMatrix); // -- || --
-
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
@@ -166,24 +155,6 @@ int main(int argc, char ** argv)
   cylindre = std::make_unique< Cylindre >(0.5f, 2.0f);
   torus = std::make_unique< Torus >(0.5f, 1.0f);
   sphere = std::make_unique< Sphere >(0.5f);
-
-  // 1. сначала рисуем карту глубины
-  // -------------------------------
-  simpleDepthShader.use();
-  simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-  glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-  glClear(GL_DEPTH_BUFFER_BIT);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureID); // ??
-
-  glCullFace(GL_FRONT);
-  renderScene(simpleDepthShader);
-  glCullFace(GL_BACK);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  setupViewport(window); // reset viewport
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -200,6 +171,37 @@ int main(int argc, char ** argv)
     // ------
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Цвет фона
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Изменение света
+    // ---------------
+
+    glm::mat4 lightProjection, lightView;
+    glm::mat4 lightSpaceMatrix;
+    float near_plane = 1.0f, far_plane = 14.5f;
+    lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+    lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+    lightSpaceMatrix = lightProjection * lightView;
+
+    shader.setVec3("lightPos", lightPos); // Менять параметры при изменении положения света
+    shader.setMat4("lightSpaceMatrix", lightSpaceMatrix); // -- || --
+
+    // 1. сначала рисуем карту глубины
+    // -------------------------------
+    simpleDepthShader.use();
+    simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID); // ??
+
+    glCullFace(GL_FRONT);
+    renderScene(simpleDepthShader);
+    glCullFace(GL_BACK);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    setupViewport(window); // reset viewport
 
     // 2. рисуем сцену как обычно с тенями (используя карту глубины)
     shader.use();
@@ -301,6 +303,14 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
   {
     camera.ProcessKeyboard(RIGHT, deltaTime);
+  }
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+  {
+    lightPos.x -= 0.1;
+  }
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+  {
+    lightPos.x += 0.1;
   }
 }
 
