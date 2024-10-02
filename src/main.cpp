@@ -82,7 +82,7 @@ void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
 
 void ConfigureShaderAndMatrices();
-void renderScene(Shader & shader);
+void renderScene(Shader & shader, bool render_scene = true);
 
 int main(int argc, char ** argv)
 {
@@ -148,6 +148,11 @@ int main(int argc, char ** argv)
   // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   shader.setVec3("lightColor", glm::vec3(0.6));
 
+  shader.setVec3("material.ambient", 0.6f, 0.6f, 0.6f);
+  shader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+  shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+  shader.setFloat("material.shininess", 64.0f);
+
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
@@ -197,7 +202,7 @@ int main(int argc, char ** argv)
     glBindTexture(GL_TEXTURE_2D, textureID); // ??
 
     glCullFace(GL_FRONT);
-    renderScene(simpleDepthShader);
+    renderScene(simpleDepthShader, false);
     glCullFace(GL_BACK);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -240,7 +245,7 @@ void ConfigureShaderAndMatrices()
   glTranslatef(0.0f, -0.25f, -2.0f);
 }
 
-void renderScene(Shader & shader)
+void renderScene(Shader & shader, bool render_scene)
 {
   // floor
   glm::mat4 model = glm::mat4(1.0f);
@@ -270,6 +275,13 @@ void renderScene(Shader & shader)
   model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(-1.0f, 3.0f, -1.0f));
   shader.setMat4("model", model);
+  if (render_scene)
+  {
+    shader.setVec3("material.ambient", 0.6f, 0.6f, 0.6f);
+    shader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+    shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    shader.setFloat("material.shininess", 20.0f);
+  }
   sphere->render();
 }
 
