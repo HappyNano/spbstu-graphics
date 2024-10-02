@@ -23,6 +23,7 @@
 #include "lab/figures/cube.hpp"
 #include "lab/figures/cylindre.hpp"
 #include "lab/figures/torus.hpp"
+#include "lab/figures/sphere.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -62,6 +63,7 @@ std::unique_ptr< Figure > surface;
 std::unique_ptr< Figure > cube;
 std::unique_ptr< Figure > cylindre;
 std::unique_ptr< Figure > torus;
+std::unique_ptr< Figure > sphere;
 
 void setMaterial(const MaterialConf & material)
 {
@@ -136,11 +138,11 @@ int main(int argc, char ** argv)
 
   // lighting info
   // -------------
-  glm::vec3 lightPos(-5.0f, 4.0f, -1.0f);
+  glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 
   glm::mat4 lightProjection, lightView;
   glm::mat4 lightSpaceMatrix;
-  float near_plane = 1.0f, far_plane = 7.5f;
+  float near_plane = 1.0f, far_plane = 14.5f;
   lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
   lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
   lightSpaceMatrix = lightProjection * lightView;
@@ -150,6 +152,9 @@ int main(int argc, char ** argv)
   shader.use();
   shader.setInt("diffuseTexture", 0);
   shader.setInt("shadowMap", depthMapFBO);
+  // glEnable(GL_BLEND);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  shader.setVec3("lightColor", glm::vec3(0.6));
 
   shader.setVec3("lightPos", lightPos); // Менять параметры при изменении положения света
   shader.setMat4("lightSpaceMatrix", lightSpaceMatrix); // -- || --
@@ -160,6 +165,7 @@ int main(int argc, char ** argv)
   cube = std::make_unique< Cube >();
   cylindre = std::make_unique< Cylindre >(0.5f, 2.0f);
   torus = std::make_unique< Torus >(0.5f, 1.0f);
+  sphere = std::make_unique< Sphere >(0.5f);
 
   // 1. сначала рисуем карту глубины
   // -------------------------------
@@ -252,11 +258,17 @@ void renderScene(Shader & shader)
 
   // torus
   model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(-4.0f, 1.5f, -3.0f));
+  model = glm::translate(model, glm::vec3(-3.7f, 1.5f, -2.0f));
   model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 0.0)));
   model = glm::rotate(model, glm::radians(25.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
   shader.setMat4("model", model);
   torus->render();
+
+  // sphere
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(-1.0f, 3.0f, -1.0f));
+  shader.setMat4("model", model);
+  sphere->render();
 }
 
 void setupViewport(GLFWwindow * window)
