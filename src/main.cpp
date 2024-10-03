@@ -253,6 +253,7 @@ void ConfigureShaderAndMatrices()
 
 void renderScene(Shader & shader, bool render_scene)
 {
+  static float angle = 0.0f;
   // floor
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, grass_texture);
@@ -323,6 +324,7 @@ void renderScene(Shader & shader, bool render_scene)
   model = glm::translate(model, glm::vec3(-3.7f, 1.5f, -2.0f));
   model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 0.0)));
   model = glm::rotate(model, glm::radians(25.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
+  model = glm::rotate(model, glm::radians(angle += 0.01), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
   shader.setMat4("model", model);
   torus->render();
 
