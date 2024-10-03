@@ -14,6 +14,14 @@ struct Material {
     vec3 specular;
     float shininess;
 }; 
+
+struct Light {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+uniform Light light;  
   
 uniform Material material;
 
@@ -24,6 +32,8 @@ uniform vec3 lightPos;
 uniform vec3 viewPos;
 
 uniform vec3 lightColor;
+
+uniform float alpha;
 
 float ShadowCalculation(vec4 fragPosLightSpace, float bias)
 {
@@ -40,15 +50,15 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias)
     float shadow = 0.0;
     // PCF (Percentage-closer filtering)
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for(int x = -1; x <= 1; ++x)
+    for(int x = -2; x <= 2; ++x)
     {
-        for(int y = -1; y <= 1; ++y)
+        for(int y = -2; y <= 2; ++y)
         {
             float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 * currentDepth : 0.0;
         }
     }
-    shadow /= 9.0;
+    shadow /= 25.0;
 
     if(projCoords.z > 1.0)
         shadow = 0.0;
@@ -61,21 +71,22 @@ void main()
     vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
     vec3 normal = normalize(fs_in.Normal);
     // ambient
-    vec3 ambient = lightColor * material.ambient;
+    vec3 ambient = light.ambient * material.ambient;
     // diffuse
     vec3 lightDir = normalize(lightPos - fs_in.FragPos);
     float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = (diff * material.diffuse) * lightColor;
+    vec3 diffuse = light.diffuse * (diff * material.diffuse);
     // specular
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-    vec3 specular = (spec * material.specular) * lightColor;    
+    vec3 specular = light.specular * (spec * material.specular);    
     // calculate shadow
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, bias);                      
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, bias); 
+
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     
-    FragColor = vec4(lighting, 1.0);
+    FragColor = vec4(lighting, alpha);
 }

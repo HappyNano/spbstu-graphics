@@ -39,7 +39,7 @@ float randf()
   return static_cast< float >(rand()) / static_cast< float >(RAND_MAX);
 }
 
-GLuint textureID;
+GLuint textureID, glass_texture, grass_texture, metal_texture;
 
 // shadow conf
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -110,7 +110,10 @@ int main(int argc, char ** argv)
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   // Подключение шейдеров и текстур
-  textureID = loadTexture("assets/wood.png");
+  textureID = loadTexture("assets/wood-2.png");
+  glass_texture = loadTexture("assets/glass1.png");
+  grass_texture = loadTexture("assets/grass.png");
+  metal_texture = loadTexture("assets/metal.png");
   Shader shader("src/shaders/shading.vert", "src/shaders/shading.frag");
   Shader simpleDepthShader("src/shaders/depth.vert", "src/shaders/depth.frag");
 
@@ -147,17 +150,22 @@ int main(int argc, char ** argv)
   // glEnable(GL_BLEND);
   // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   shader.setVec3("lightColor", glm::vec3(0.6));
+  shader.setFloat("alpha", 1.0f);
+
+  shader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+  shader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+  shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
   shader.setVec3("material.ambient", 0.6f, 0.6f, 0.6f);
-  shader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+  shader.setVec3("material.diffuse", 0.7f, 0.7f, 0.7f);
   shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-  shader.setFloat("material.shininess", 64.0f);
+  shader.setFloat("material.shininess", 16.0f);
 
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
   cube = std::make_unique< Cube >();
-  cylindre = std::make_unique< Cylindre >(0.5f, 2.0f);
+  cylindre = std::make_unique< Cylindre >(0.5f, 3.0f);
   torus = std::make_unique< Torus >(0.5f, 1.0f);
   sphere = std::make_unique< Sphere >(0.5f);
 
@@ -182,7 +190,7 @@ int main(int argc, char ** argv)
 
     glm::mat4 lightProjection, lightView;
     glm::mat4 lightSpaceMatrix;
-    float near_plane = 1.0f, far_plane = 14.5f;
+    float near_plane = 1.0f, far_plane = 19.5f;
     lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
     lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     lightSpaceMatrix = lightProjection * lightView;
@@ -216,8 +224,6 @@ int main(int argc, char ** argv)
     shader.setMat4("view", view);
     // set light uniforms
     shader.setVec3("viewPos", camera.Position);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, depthMap);
     renderScene(shader);
@@ -248,20 +254,69 @@ void ConfigureShaderAndMatrices()
 void renderScene(Shader & shader, bool render_scene)
 {
   // floor
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, grass_texture);
   glm::mat4 model = glm::mat4(1.0f);
   shader.setMat4("model", model);
+  if (render_scene)
+  {
+    shader.setVec3("material.ambient", 0.3f, 0.6f, 0.3f);
+    shader.setVec3("material.diffuse", 0.3f, 0.6f, 0.3f);
+    shader.setVec3("material.specular", 0.3f, 0.5f, 0.3f);
+    shader.setFloat("material.shininess", 5.0f);
+    shader.setFloat("alpha", 0.3f);
+  }
   surface->render();
+  shader.setVec3("material.ambient", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
+  shader.setVec3("material.diffuse", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
+  shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+  shader.setFloat("material.shininess", 16.0f);
+  shader.setFloat("alpha", 1.0f);
 
   // cube
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, metal_texture);
   model = glm::mat4(1.0f);
   shader.setMat4("model", model);
+  shader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
+  shader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
+  shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+  shader.setFloat("material.shininess", 90.0f);
+  shader.setFloat("alpha", 1.0f);
   cube->render();
 
   // cylindre
-  model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(-2.0f, 0.0f, 1.0f));
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+  shader.setVec3("material.ambient", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
+  shader.setVec3("material.diffuse", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
+  shader.setVec3("material.specular", 0.2f, 0.2f, 0.2f);
+  shader.setFloat("material.shininess", 8.0f);
+  shader.setFloat("alpha", 1.0f);
+
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 2.0f));
   shader.setMat4("model", model);
   cylindre->render();
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 3.0f, 2.0f));
+  shader.setMat4("model", model);
+  sphere->render();
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, 1.0f));
+  shader.setMat4("model", model);
+  cylindre->render();
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 3.0f, 1.0f));
+  shader.setMat4("model", model);
+  sphere->render();
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 2.0f, 2.0f));
+  model = glm::rotate(model, glm::radians(-18.5f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
+  model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 0.0, 1.0)));
+  shader.setMat4("model", model);
+  cylindre->render();
+
+  shader.setVec3("material.ambient", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
+  shader.setVec3("material.diffuse", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
+  shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+  shader.setFloat("material.shininess", 16.0f);
+  shader.setFloat("alpha", 1.0f);
 
   // torus
   model = glm::mat4(1.0f);
@@ -272,17 +327,23 @@ void renderScene(Shader & shader, bool render_scene)
   torus->render();
 
   // sphere
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, glass_texture);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(-1.0f, 3.0f, -1.0f));
   shader.setMat4("model", model);
   if (render_scene)
   {
     shader.setVec3("material.ambient", 0.6f, 0.6f, 0.6f);
-    shader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-    shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-    shader.setFloat("material.shininess", 20.0f);
+    shader.setVec3("material.diffuse", 0.6f, 0.6f, 0.6f);
+    shader.setVec3("material.specular", 0.6f, 0.6f, 0.6f);
+    shader.setFloat("material.shininess", 70.0f);
+    shader.setFloat("alpha", 0.3f);
   }
   sphere->render();
+  shader.setFloat("alpha", 1.0f);
 }
 
 void setupViewport(GLFWwindow * window)
