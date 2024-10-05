@@ -12,9 +12,9 @@
 #include <math.h>
 #include <unistd.h>
 
-#include "lab1/settings.hpp"
-#include "lab1/material.hpp"
-#include "lab1/texture.hpp"
+#include "lab/settings.hpp"
+#include "lab/material.hpp"
+#include "lab/texture.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {

@@ -1,5 +1,5 @@
 
-#include "lab1/texture.hpp"
+#include "lab/texture.hpp"
 
 #include <iostream>
 #include <fstream>

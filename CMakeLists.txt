@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(lab1 VERSION 0 LANGUAGES CXX)
+project(lab2 VERSION 0 LANGUAGES CXX)
 
 # Включаем генерацию compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -32,23 +32,7 @@ add_subdirectory(${EXTERNAL_DIR}/glfw)
 
 # Добавляем пути к заголовочным файлам
 
-include(${SRC_DIR}/src.cmake)
-
-# Создаем исполняемый файл
-add_executable(out ${SOURCES})
-
-target_include_directories(out PRIVATE
-    ${INCLUDE_DIR}
-    ${EXTERNAL_DIR}/glfw/include
-    ${EXTERNAL_DIR}/glm
-    ${EXTERNAL_DIR}/stb
-    ${GLEW_INCLUDE_DIRS}
-    ${GLUT_INCLUDE_DIR}
-)
-
-target_link_libraries(out glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLUT_LIBRARIES})
-
-set_target_properties(out PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY})
+include(${SRC_DIR}/lab/src.cmake)
 
 # ====================
 
@@ -65,5 +49,5 @@ add_custom_target(
     VERBATIM
 )
 
-# Добавляем правку кода к цели построения
-add_dependencies(out clang-format-fix)
+# Создаем исполняемый файл для лабораторной №2
+include(lab2.cmake)
