@@ -16,14 +16,6 @@
 #include "lab/settings.hpp"
 #include "lab/material.hpp"
 #include "lab/texture.hpp"
-#include "lab/shaders.hpp"
-#include "lab/camera.hpp"
-
-#include "lab/figures/surface.hpp"
-#include "lab/figures/cube.hpp"
-#include "lab/figures/cylindre.hpp"
-#include "lab/figures/torus.hpp"
-#include "lab/figures/sphere.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -333,19 +325,134 @@ void renderScene(Shader & shader, bool render_scene)
   glBindTexture(GL_TEXTURE_2D, glass_texture);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(-1.0f, 3.0f, -1.0f));
-  shader.setMat4("model", model);
-  if (render_scene)
-  {
-    shader.setVec3("material.ambient", 0.6f, 0.6f, 0.6f);
-    shader.setVec3("material.diffuse", 0.6f, 0.6f, 0.6f);
-    shader.setVec3("material.specular", 0.6f, 0.6f, 0.6f);
-    shader.setFloat("material.shininess", 70.0f);
-    shader.setFloat("alpha", 0.3f);
-  }
-  sphere->render();
-  shader.setFloat("alpha", 1.0f);
+  setMaterial(MaterialConf{ { 0.2f, 0.2f, 0.2f, 0.4f }, { 0.1f, 0.1f, 0.1f, 0.4f }, { 0.0f, 0.0f, 0.0f, 0.4f }, { 5.0f } });
+
+  glTranslatef(0.0f, 0.0f, 0.0f);
+  glRotatef(90, 1.0f, 0.0f, 0.0f);
+  glutSolidCylinder(0.5f, 1.0f, 128, 128);
+
+  glPopMatrix();
+  glPopAttrib();
+}
+
+void displaySphere()
+{
+  glPushAttrib(GL_LIGHTING_BIT);
+  glPushMatrix();
+
+  setMaterial(MaterialConf{ { 0.0f, 0.7f, 0.3f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 5.0f } });
+  glTranslatef(0.0f, 1.0f, 0.0f);
+  glutSolidSphere(0.5f, 128, 128);
+
+  glPopMatrix();
+  glPopAttrib();
+}
+
+void displayCube()
+{
+  static GLfloat angle = 0.0f;
+  glPushAttrib(GL_LIGHTING_BIT | GL_TEXTURE_BIT);
+  glPushMatrix();
+
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+
+  // glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  // glColor4f(0.8f, 0.1f, 0.1f, 1.0f);
+
+  // setMaterial(MaterialConf{ { 0.7f, 0.4f, 0.1f, 1.0f }, { 0.2f, 0.1f, 0.1f, 1.0f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f } });
+
+  glRotatef((sin(angle += 0.001) + 1) * 45.f, 1.0f, 0.0f, 0.0f);
+  glTranslatef(-1.0f, 0.0f, 0.0f);
+  glScalef(0.5f, 0.5f, 0.5f);
+
+  GLfloat texLeft = 0.0f;
+  GLfloat texRight = 1.0f;
+  GLfloat texBottom = 0.0f;
+  GLfloat texTop = 1.0f;
+  glBegin(GL_QUADS);
+  // Front face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, 0.5f);
+  // Back face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, -0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, -0.5f);
+  // Left face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(-0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(-0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, -0.5f);
+  // Right face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(0.5f, 0.5f, -0.5f);
+  // Top face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, 0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, 0.5f, -0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, 0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, 0.5f, 0.5f);
+  // Bottom face
+  glTexCoord2f(texLeft, texBottom);
+  glVertex3f(-0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texBottom);
+  glVertex3f(0.5f, -0.5f, -0.5f);
+  glTexCoord2f(texRight, texTop);
+  glVertex3f(0.5f, -0.5f, 0.5f);
+  glTexCoord2f(texLeft, texTop);
+  glVertex3f(-0.5f, -0.5f, 0.5f);
+  glEnd();
+
+  glDisable(GL_TEXTURE_2D);
+
+  glPopMatrix();
+  glPopAttrib();
+}
+
+void displayTor()
+{
+  glPushAttrib(GL_LIGHTING_BIT);
+  glPushMatrix();
+
+  setMaterial(MaterialConf{ { 0.5f, 0.2f, 0.7f, 1.0f }, { 0.1f, 0.1f, 0.1f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 5.0f } });
+
+  glTranslatef(0.3f, 0.2f, 1.0f);
+  glRotatef(20, 0.0f, 0.0f, 1.0f);
+  glRotatef(20, 0.0f, 1.0f, 0.0f);
+  glRotatef(-20, 1.0f, 0.0f, 0.0f);
+  glTranslatef(0.3f, 0.2f, -2.0f);
+  glutSolidTorus(0.3f, 0.6f, 128, 128);
+
+  glPopMatrix();
+  glPopAttrib();
 }
 
 void setupViewport(GLFWwindow * window)
