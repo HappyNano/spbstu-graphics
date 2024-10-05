@@ -1,5 +1,5 @@
 # Создаем исполняемый файл для лабораторной №2
-add_executable(lab2 ${SOURCES} ${SRC_DIR}/lab2_main.cpp)
+add_executable(lab2 ${SOURCES} ${SRC_DIR}/lab2_main.cpp ${EXTERNAL_DIR}/glad/src/glad.c)
 
 target_include_directories(lab2 PRIVATE
     ${INCLUDE_DIR}
@@ -7,6 +7,7 @@ target_include_directories(lab2 PRIVATE
     ${EXTERNAL_DIR}/glm
     ${EXTERNAL_DIR}/stb
     ${GLEW_INCLUDE_DIRS}
+    ${EXTERNAL_DIR}/glad/include
     ${GLUT_INCLUDE_DIR}
 )
 

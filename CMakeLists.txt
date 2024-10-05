@@ -31,7 +31,7 @@ add_subdirectory(${EXTERNAL_DIR}/glfw)
 
 # Добавляем пути к заголовочным файлам
 
-include(${SRC_DIR}/lab/src.cmake)
+include(${SRC_DIR}/src.cmake)
 
 # ====================
 
