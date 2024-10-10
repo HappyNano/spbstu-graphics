@@ -52,3 +52,5 @@ add_custom_target(
 include(lab2.cmake)
 # Создаем исполняемый файл для лабораторной №2
 include(lab3.cmake)
+# Создаем исполняемый файл для курсовой
+include(course.cmake)
