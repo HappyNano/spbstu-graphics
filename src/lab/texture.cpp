@@ -8,11 +8,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-GLuint loadTexture(const std::string & filename)
+Texture2D loadTexture(const std::string & filename)
 {
-  GLuint textureID;
-  glGenTextures(1, &textureID);
-  glBindTexture(GL_TEXTURE_2D, textureID);
+  Texture2D texture;
+  glGenTextures(1, &texture.ID);
+  glBindTexture(GL_TEXTURE_2D, texture.ID);
 
   // Load the texture data
   int width, height, nrChannels;
@@ -42,5 +42,10 @@ GLuint loadTexture(const std::string & filename)
   }
 
   stbi_image_free(data);
-  return textureID;
+  return texture;
+}
+
+void Texture2D::bind() const
+{
+  glBindTexture(GL_TEXTURE_2D, this->ID);
 }

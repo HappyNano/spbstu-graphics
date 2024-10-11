@@ -48,7 +48,7 @@ float randf()
   return static_cast< float >(rand()) / static_cast< float >(RAND_MAX);
 }
 
-GLuint textureID, glass_texture, grass_texture, metal_texture;
+Texture2D texture, glass_texture, grass_texture, metal_texture;
 
 // shadow conf
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   // Подключение шейдеров и текстур
-  textureID = loadTexture("assets/wood-2.png");
+  texture = loadTexture("assets/wood-2.png");
   glass_texture = loadTexture("assets/glass1.png");
   grass_texture = loadTexture("assets/grass.png");
   metal_texture = loadTexture("assets/metal.png");
@@ -265,7 +265,7 @@ void renderScene(Shader & shader, bool render_scene)
   static float angle = 0.0f;
   // floor
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, grass_texture);
+  glBindTexture(GL_TEXTURE_2D, grass_texture.ID);
   glm::mat4 model = glm::mat4(1.0f);
   shader.setMat4("model", model);
   if (render_scene)
@@ -285,7 +285,7 @@ void renderScene(Shader & shader, bool render_scene)
 
   // cube
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, metal_texture);
+  glBindTexture(GL_TEXTURE_2D, metal_texture.ID);
   model = glm::mat4(1.0f);
   shader.setMat4("model", model);
   shader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
@@ -297,7 +297,7 @@ void renderScene(Shader & shader, bool render_scene)
 
   // cylindre
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureID);
+  glBindTexture(GL_TEXTURE_2D, texture.ID);
   shader.setVec3("material.ambient", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
   shader.setVec3("material.diffuse", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
   shader.setVec3("material.specular", 0.2f, 0.2f, 0.2f);
@@ -339,7 +339,7 @@ void renderScene(Shader & shader, bool render_scene)
 
   // sphere
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, glass_texture);
+  glBindTexture(GL_TEXTURE_2D, glass_texture.ID);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   model = glm::mat4(1.0f);

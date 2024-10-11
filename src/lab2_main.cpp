@@ -33,7 +33,7 @@ GLfloat x, y, z;
 GLfloat r, g, b;
 float fov = 45;
 
-GLuint textureID;
+Texture2D texture;
 
 void setMaterial(const MaterialConf & material)
 {
@@ -89,10 +89,7 @@ int main(int argc, char ** argv)
   g = 1.0f;
   b = 1.0f;
 
-  glGenTextures(1, &textureID);
-  glBindTexture(GL_TEXTURE_2D, textureID);
-
-  textureID = loadTexture("assets/redstone_block.bmp");
+  texture = loadTexture("assets/redstone_block.bmp");
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -137,7 +134,7 @@ int main(int argc, char ** argv)
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
-  glDeleteTextures(1, &textureID);
+  glDeleteTextures(1, &texture.ID);
 
   glfwDestroyWindow(window);
   glfwTerminate();
@@ -184,7 +181,7 @@ void displayCube()
   glPushMatrix();
 
   glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, textureID);
+  glBindTexture(GL_TEXTURE_2D, texture.ID);
 
   // glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 
