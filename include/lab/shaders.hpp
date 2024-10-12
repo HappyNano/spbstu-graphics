@@ -5,10 +5,13 @@
 #include <glm/glm.hpp>
 
 #include <string>
+#include <memory>
 
-class Shader
+class Shader final
 {
  public:
+  using shared = std::shared_ptr< Shader >;
+
   Shader(const std::string & vertexSourcePwd, const std::string & fragmentSourcePwd);
   ~Shader();
 
@@ -28,10 +31,19 @@ class Shader
   void setMat3(const std::string & name, const glm::mat3 & mat) const;
   void setMat4(const std::string & name, const glm::mat4 & mat) const;
 
+  template < typename... Args >
+  static shared makeShared(Args &&...);
+
  private:
   GLuint _program;
 
   void _checkCompileErrors(GLuint shader, std::string type);
 };
+
+template < typename... Args >
+typename Shader::shared Shader::makeShared(Args &&... args)
+{
+  return std::make_shared< Shader >(std::forward< Args >(args)...);
+}
 
 #endif

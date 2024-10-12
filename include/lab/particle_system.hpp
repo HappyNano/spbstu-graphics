@@ -12,21 +12,24 @@ class ParticleSystem
  public:
   using this_t = ParticleSystem;
 
-  ParticleSystem(Shader shader, Texture2D texture, size_t amount);
+  ParticleSystem(Shader::shared shader, size_t amount, glm::vec3 pos = glm::vec3(0.0f));
   ParticleSystem(const this_t &) = delete;
   ParticleSystem(this_t &&) = delete;
   ~ParticleSystem();
 
-  void update(float dt, unsigned int newParticles, glm::vec2 offset = glm::vec2(0.0f, 0.0f));
+  void update(float dt, size_t newParticles, glm::vec3 offset = glm::vec3(0.0f));
   void render();
 
  private:
   std::vector< Particle > _particles;
   size_t _amount;
-  Shader _shader;
-  Texture2D _texture;
+  Shader::shared _shader_ptr;
 
   unsigned int _VAO;
+  glm::vec3 _pos;
+
+  size_t _firstUnusedParticle();
+  void _respawnParticle(Particle & particle, glm::vec3 offset);
 };
 
 #endif

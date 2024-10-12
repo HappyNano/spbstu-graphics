@@ -48,7 +48,9 @@ Shader::Shader(const std::string & vertexSourcePwd, const std::string & fragment
 }
 
 Shader::~Shader()
-{}
+{
+  glDeleteProgram(_program);
+}
 
 void Shader::use()
 {

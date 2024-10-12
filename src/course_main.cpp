@@ -20,15 +20,13 @@
 #include "lab/camera.hpp"
 
 #include "lab/figures/surface.hpp"
-#include "lab/figures/cube.hpp"
-#include "lab/figures/cylindre.hpp"
-#include "lab/figures/torus.hpp"
 #include "lab/figures/sphere.hpp"
+#include "lab/particle_system.hpp"
 
 /*
 Задание 12.
 1. Эмиттер – точка, направление движения выбирается случайным образом.
-2. Обязательные параметры: скорость увеличивается в зависимости от времени жизни 
+2. Обязательные параметры: скорость увеличивается в зависимости от времени жизни
 Остальные параметры устанавливаются и изменяются по вашему выбору.
 3. След: необязателен
 4. Анти-аттрактор: точка
@@ -72,9 +70,6 @@ glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 
 // figures
 std::unique_ptr< Figure > surface;
-std::unique_ptr< Figure > cube;
-std::unique_ptr< Figure > cylindre;
-std::unique_ptr< Figure > torus;
 std::unique_ptr< Figure > sphere;
 
 void setMaterial(const MaterialConf & material)
@@ -125,6 +120,7 @@ int main(int argc, char ** argv)
   metal_texture = loadTexture("assets/metal.png");
   Shader shader("src/shaders/shading.vert", "src/shaders/shading.frag");
   Shader simpleDepthShader("src/shaders/depth.vert", "src/shaders/depth.frag");
+  auto particleShader = Shader::makeShared("src/shaders/particle_shader.vert", "src/shaders/particle_shader.frag");
 
   // Создаем и настраиваем карту глубины FBO
   // -----------------------
@@ -173,10 +169,11 @@ int main(int argc, char ** argv)
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
-  cube = std::make_unique< Cube >();
-  cylindre = std::make_unique< Cylindre >(0.5f, 3.0f);
-  torus = std::make_unique< Torus >(0.5f, 1.0f);
-  sphere = std::make_unique< Sphere >(0.5f);
+  sphere = std::make_unique< Sphere >(0.1f);
+
+  // Particle System
+  // ---------------
+  auto particles = ParticleSystem(particleShader, 1000, glm::vec3(0.0f, 1.0f, 0.0f));
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -204,6 +201,7 @@ int main(int argc, char ** argv)
     lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     lightSpaceMatrix = lightProjection * lightView;
 
+    shader.use();
     shader.setVec3("lightPos", lightPos); // Менять параметры при изменении положения света
     shader.setMat4("lightSpaceMatrix", lightSpaceMatrix); // -- || --
 
@@ -216,7 +214,6 @@ int main(int argc, char ** argv)
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID); // ??
 
     glCullFace(GL_FRONT);
     renderScene(simpleDepthShader, false);
@@ -237,11 +234,20 @@ int main(int argc, char ** argv)
     glBindTexture(GL_TEXTURE_2D, depthMap);
     renderScene(shader);
 
+    // Particle Scene
+    particleShader->use();
+    particleShader->setMat4("projection", projection);
+    particleShader->setMat4("view", view);
+    particles.update(deltaTime, 2);
+    particles.render();
+    glUseProgram(0);
+    // End Particle
+
     glFlush();
     // == Конец  отрисовки
     glfwSwapBuffers(window);
   }
-  glDeleteTextures(1, &textureID);
+  glDeleteTextures(1, &texture.ID);
   glDeleteTextures(1, &depthMap);
 
   glDeleteFramebuffers(1, &depthMapFBO);
@@ -262,7 +268,6 @@ void ConfigureShaderAndMatrices()
 
 void renderScene(Shader & shader, bool render_scene)
 {
-  static float angle = 0.0f;
   // floor
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, grass_texture.ID);
@@ -277,84 +282,10 @@ void renderScene(Shader & shader, bool render_scene)
     shader.setFloat("alpha", 0.3f);
   }
   surface->render();
-  shader.setVec3("material.ambient", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
-  shader.setVec3("material.diffuse", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
-  shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-  shader.setFloat("material.shininess", 16.0f);
-  shader.setFloat("alpha", 1.0f);
 
-  // cube
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, metal_texture.ID);
   model = glm::mat4(1.0f);
   shader.setMat4("model", model);
-  shader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
-  shader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
-  shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-  shader.setFloat("material.shininess", 90.0f);
-  shader.setFloat("alpha", 1.0f);
-  cube->render();
-
-  // cylindre
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture.ID);
-  shader.setVec3("material.ambient", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
-  shader.setVec3("material.diffuse", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
-  shader.setVec3("material.specular", 0.2f, 0.2f, 0.2f);
-  shader.setFloat("material.shininess", 8.0f);
-  shader.setFloat("alpha", 1.0f);
-
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 2.0f));
-  shader.setMat4("model", model);
-  cylindre->render();
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 3.0f, 2.0f));
-  shader.setMat4("model", model);
   sphere->render();
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, 1.0f));
-  shader.setMat4("model", model);
-  cylindre->render();
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 3.0f, 1.0f));
-  shader.setMat4("model", model);
-  sphere->render();
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 2.0f, 2.0f));
-  model = glm::rotate(model, glm::radians(-18.5f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
-  model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0, 0.0, 1.0)));
-  shader.setMat4("model", model);
-  cylindre->render();
-
-  shader.setVec3("material.ambient", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
-  shader.setVec3("material.diffuse", 209.f / 255.f, 185.f / 255.f, 151.f / 255.f);
-  shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-  shader.setFloat("material.shininess", 16.0f);
-  shader.setFloat("alpha", 1.0f);
-
-  // torus
-  model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(-3.7f, 1.5f, -2.0f));
-  model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 0.0)));
-  model = glm::rotate(model, glm::radians(25.0f), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
-  model = glm::rotate(model, glm::radians(angle += 0.01), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
-  shader.setMat4("model", model);
-  torus->render();
-
-  // sphere
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, glass_texture.ID);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(-1.0f, 3.0f, -1.0f));
-  shader.setMat4("model", model);
-  if (render_scene)
-  {
-    shader.setVec3("material.ambient", 0.6f, 0.6f, 0.6f);
-    shader.setVec3("material.diffuse", 0.6f, 0.6f, 0.6f);
-    shader.setVec3("material.specular", 0.6f, 0.6f, 0.6f);
-    shader.setFloat("material.shininess", 70.0f);
-    shader.setFloat("alpha", 0.3f);
-  }
-  sphere->render();
-  shader.setFloat("alpha", 1.0f);
 }
 
 void setupViewport(GLFWwindow * window)

@@ -207,7 +207,7 @@ int main(int argc, char ** argv)
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID); // ??
+    glBindTexture(GL_TEXTURE_2D, texture.ID); // ??
 
     glCullFace(GL_FRONT);
     renderScene(simpleDepthShader, false);
@@ -232,7 +232,7 @@ int main(int argc, char ** argv)
     // == Конец  отрисовки
     glfwSwapBuffers(window);
   }
-  glDeleteTextures(1, &textureID);
+  glDeleteTextures(1, &texture.ID);
   glDeleteTextures(1, &depthMap);
 
   glDeleteFramebuffers(1, &depthMapFBO);
