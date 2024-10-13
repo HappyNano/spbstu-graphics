@@ -12,5 +12,5 @@ void main()
 {
   float scale = 10.0f;
   ParticleColor = color;
-  gl_Position = projection * view * mat4(1.0) * vec4(position + offset, 1.0);
+  gl_Position = projection * view * vec4(position + offset, 1.0);
 }

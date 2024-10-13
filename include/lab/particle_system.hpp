@@ -1,7 +1,7 @@
 #ifndef PARTICLE_SYSTEM_HPP
 #define PARTICLE_SYSTEM_HPP
 
-#include <vector>
+#include <deque>
 
 #include "lab/particle.hpp"
 #include "lab/shaders.hpp"
@@ -17,19 +17,24 @@ class ParticleSystem
   ParticleSystem(this_t &&) = delete;
   ~ParticleSystem();
 
-  void update(float dt, size_t newParticles, glm::vec3 offset = glm::vec3(0.0f));
+  /**
+   * @brief Update particles
+   * @param dt - delta time
+   * @param newParticles - count generating particles
+   */
+  void update(float dt, size_t newParticles);
   void render();
 
  private:
-  std::vector< Particle > _particles;
-  size_t _amount;
-  Shader::shared _shader_ptr;
+  std::deque< Particle > _particles; ///< Particle Storage
+  size_t _amount;                    ///< Maximum amount of particles
+  Shader::shared _shader_ptr;        ///< Pointer to Particle Shader
 
-  unsigned int _VAO;
-  glm::vec3 _pos;
+  unsigned int _VAO; ///< Vertex Array for particle
+  glm::vec3 _pos;    ///< Emitter position (Particle's birth position)
 
-  size_t _firstUnusedParticle();
-  void _respawnParticle(Particle & particle, glm::vec3 offset);
+  Particle _makeParticle();
+  void _removeDeathParticles();
 };
 
 #endif

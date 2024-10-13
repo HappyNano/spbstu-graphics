@@ -10,6 +10,18 @@ struct Particle
   float life;
 
   Particle();
+
+  bool isDead() const;
+};
+
+struct LifeComparator
+{
+  bool operator()(const Particle &, const Particle &);
+};
+
+struct DeadPredicate
+{
+  bool operator()(const Particle &);
 };
 
 #endif

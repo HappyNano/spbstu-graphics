@@ -46,7 +46,7 @@ float randf()
   return static_cast< float >(rand()) / static_cast< float >(RAND_MAX);
 }
 
-Texture2D texture, glass_texture, grass_texture, metal_texture;
+Texture2D grass_texture;
 
 // shadow conf
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
@@ -114,10 +114,7 @@ int main(int argc, char ** argv)
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   // Подключение шейдеров и текстур
-  texture = loadTexture("assets/wood-2.png");
-  glass_texture = loadTexture("assets/glass1.png");
   grass_texture = loadTexture("assets/grass.png");
-  metal_texture = loadTexture("assets/metal.png");
   Shader shader("src/shaders/shading.vert", "src/shaders/shading.frag");
   Shader simpleDepthShader("src/shaders/depth.vert", "src/shaders/depth.frag");
   auto particleShader = Shader::makeShared("src/shaders/particle_shader.vert", "src/shaders/particle_shader.frag");
@@ -173,7 +170,7 @@ int main(int argc, char ** argv)
 
   // Particle System
   // ---------------
-  auto particles = ParticleSystem(particleShader, 1000, glm::vec3(0.0f, 1.0f, 0.0f));
+  auto particles = ParticleSystem(particleShader, 2000, glm::vec3(0.0f, 1.0f, 0.0f));
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -247,7 +244,7 @@ int main(int argc, char ** argv)
     // == Конец  отрисовки
     glfwSwapBuffers(window);
   }
-  glDeleteTextures(1, &texture.ID);
+  glDeleteTextures(1, &grass_texture.ID);
   glDeleteTextures(1, &depthMap);
 
   glDeleteFramebuffers(1, &depthMapFBO);
