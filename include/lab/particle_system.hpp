@@ -33,7 +33,7 @@ class ParticleSystem
   glm::vec3 _pos;    ///< Emitter position (Particle's birth position)
 
   glm::vec3 _anti_attractor_pos; ///< Anti-Attractor positions
-  const float _attractor_strength = 0.2f;
+  const float _attractor_strength = 0.4f;
 
   Particle _makeParticle();
 };

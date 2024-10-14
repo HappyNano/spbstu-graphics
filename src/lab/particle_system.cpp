@@ -80,7 +80,7 @@ void ParticleSystem::update(float dt, size_t newParticles)
     particle.pos += particle.vel * dt;
 
     // Kill particle if particle below y=0.0
-    if (particle.pos.y <= 0.0f)
+    if (particle.pos.y <= 0.0f || particle.pos.y >= 5.0f)
     {
       particle.life = 0.0f;
     }
@@ -104,7 +104,6 @@ void ParticleSystem::render()
       glBindVertexArray(this->_VAO);
       glDrawArrays(GL_LINES, 0, 2);
       glBindVertexArray(0);
-      // std::cout << particle.pos.x << ' ' << particle.pos.y << ' ' << particle.pos.z << '\n';
     }
   }
   // don't forget to reset to default blending mode
@@ -120,7 +119,7 @@ Particle ParticleSystem::_makeParticle()
   glm::vec3 rVelocity = { -std::abs((rand() % 100) - 50), (rand() % 100) - 50, 0.0f };
   rVelocity /= 100.0f;
 
-  particle.pos = this->_pos + random;
+  particle.pos = this->_pos;
   particle.color = glm::vec4(rColor, rColor, rColor, 1.0f);
   particle.life = 15.0f * (1.0f + (rand() % 100) / 100.0f);
   particle.vel = rVelocity;
