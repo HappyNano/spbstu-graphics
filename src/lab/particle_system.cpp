@@ -94,17 +94,14 @@ void ParticleSystem::render()
   // _shader_ptr->use();
   for (auto && particle: this->_particles.getAliveParticles())
   {
-    if (!particle.isDead())
-    {
-      _shader_ptr->setVec3("old_pos", particle.old_pos);
-      _shader_ptr->setVec3("offset", particle.pos);
-      glEnable(GL_LINE_SMOOTH);
-      glPointSize(5.0f);
-      glLineWidth(10.0f);
-      glBindVertexArray(this->_VAO);
-      glDrawArrays(GL_LINES, 0, 2);
-      glBindVertexArray(0);
-    }
+    _shader_ptr->setVec3("old_pos", particle.old_pos);
+    _shader_ptr->setVec3("offset", particle.pos);
+    glEnable(GL_LINE_SMOOTH);
+    glPointSize(5.0f);
+    glLineWidth(10.0f);
+    glBindVertexArray(this->_VAO);
+    glDrawArrays(GL_LINES, 0, 2);
+    glBindVertexArray(0);
   }
   // don't forget to reset to default blending mode
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
