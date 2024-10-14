@@ -5,6 +5,7 @@
 
 struct Particle
 {
+  glm::vec3 old_pos;
   glm::vec3 pos, vel;
   glm::vec4 color;
   float life;

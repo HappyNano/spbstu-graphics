@@ -170,7 +170,7 @@ int main(int argc, char ** argv)
 
   // Particle System
   // ---------------
-  auto particles = ParticleSystem(particleShader, 2000, glm::vec3(0.0f, 1.0f, 0.0f));
+  auto particles = ParticleSystem(particleShader, 5000, glm::vec3(-2.0f, 0.5f, 0.0f), glm::vec3(0.0f, 0.5f, 0.0f));
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -235,7 +235,7 @@ int main(int argc, char ** argv)
     particleShader->use();
     particleShader->setMat4("projection", projection);
     particleShader->setMat4("view", view);
-    particles.update(deltaTime, 2);
+    particles.update(deltaTime, 5);
     particles.render();
     glUseProgram(0);
     // End Particle
@@ -281,6 +281,11 @@ void renderScene(Shader & shader, bool render_scene)
   surface->render();
 
   model = glm::mat4(1.0f);
+  shader.setMat4("model", model);
+  sphere->render();
+
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(-2.0f, 0.5f, 0.0f));
   shader.setMat4("model", model);
   sphere->render();
 }
