@@ -22,6 +22,7 @@
 #include "lab/figures/surface.hpp"
 #include "lab/figures/sphere.hpp"
 #include "lab/particle_system.hpp"
+#include "lab/anti_attractor.hpp"
 
 /*
 Задание 12.
@@ -170,7 +171,8 @@ int main(int argc, char ** argv)
 
   // Particle System
   // ---------------
-  auto particles = ParticleSystem(particleShader, 5000, glm::vec3(-2.0f, 1.5f, 0.0f), glm::vec3(0.0f, 0.5f, 0.0f));
+  auto particles = ParticleSystem(particleShader, 5000, glm::vec3(0.0f, 0.5f, 0.0f));
+  auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.4f);
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -235,7 +237,7 @@ int main(int argc, char ** argv)
     particleShader->use();
     particleShader->setMat4("projection", projection);
     particleShader->setMat4("view", view);
-    particles.update(deltaTime, 5);
+    particles.update(deltaTime, 5, anti_attractor);
     particles.render();
     glUseProgram(0);
     // End Particle

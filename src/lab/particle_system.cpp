@@ -5,12 +5,11 @@
 #include <algorithm>
 #include <functional>
 
-ParticleSystem::ParticleSystem(Shader::shared shader, size_t amount, glm::vec3 anti_attractor_pos, glm::vec3 pos):
+ParticleSystem::ParticleSystem(Shader::shared shader, size_t amount, glm::vec3 pos):
   _particles{ amount },
   _amount{ amount },
   _shader_ptr{ shader },
-  _pos{ pos },
-  _anti_attractor_pos{ anti_attractor_pos }
+  _pos{ pos }
 {
   // Creating particle vertex buffer (one-point)
   {
@@ -38,55 +37,6 @@ ParticleSystem::ParticleSystem(Shader::shared shader, size_t amount, glm::vec3 a
 
 ParticleSystem::~ParticleSystem()
 {}
-
-void ParticleSystem::update(float dt, size_t newParticles)
-{
-  // Add new particles
-  // -----------------
-  for (size_t i = 0; i < newParticles && !_particles.isFull(); ++i)
-  {
-    this->_particles.makeParticle(_makeParticle());
-  }
-  // Update all particles
-  // --------------------
-  for (auto & particle: this->_particles.getAliveParticles())
-  {
-    particle.old_pos = particle.pos;
-
-    particle.life -= dt;              // reduce life
-    particle.vel *= 1.0f + dt / 2.0f; // increasing speed
-
-    // Anti-attractor
-    // glm::vec3 between = particle.pos - _anti_attractor_pos;
-    // float distance = glm::distance(particle.pos, _anti_attractor_pos);
-    // if (distance < _attractor_strength)
-    // {
-    //   particle.vel = particle.vel - between / 100.f / distance;
-    // }
-    // Вычисляем вектор отталкивания от точки
-    glm::vec3 direction = particle.pos - _anti_attractor_pos;
-
-    float distance = glm::length(direction);
-    // Нормализуем вектор направления (чтобы получить единичный вектор)
-    glm::vec3 normalizedDirection = glm::normalize(direction);
-
-    // Вычисляем силу отталкивания (обратно пропорционально квадрату расстояния, либо линейно)
-    glm::vec3 repulsion = normalizedDirection * (_attractor_strength / (distance * distance));
-
-    // Обновляем скорость частицы, добавляя вектор отталкивания
-    particle.vel += repulsion * dt;
-
-    // Обновляем позицию частицы
-    particle.pos += particle.vel * dt;
-
-    // Kill particle if particle below y=0.0
-    if (particle.pos.y <= 0.0f || particle.pos.y >= 5.0f)
-    {
-      particle.life = 0.0f;
-    }
-  }
-  _particles.clearDeadParticles();
-}
 
 void ParticleSystem::render()
 {
@@ -125,4 +75,9 @@ Particle ParticleSystem::_makeParticle()
 }
 
 void ParticleSystem::_makeNewParticles(size_t count)
-{}
+{
+  for (size_t i = 0; i < count && !_particles.isFull(); ++i)
+  {
+    this->_particles.makeParticle(_makeParticle());
+  }
+}

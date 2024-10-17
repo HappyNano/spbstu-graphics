@@ -44,8 +44,8 @@ void ParticleStorage::clearDeadParticles()
   {
     if (it->isDead())
     {
-      std::iter_swap(it, _death_particle_it);
       --_death_particle_it;
+      std::iter_swap(it, _death_particle_it);
       --_alive_particles;
     }
   }

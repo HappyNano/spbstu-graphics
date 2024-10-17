@@ -13,6 +13,7 @@ struct Particle
   Particle();
 
   bool isDead() const;
+  void kill();
 };
 
 struct LifeComparator
