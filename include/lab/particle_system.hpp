@@ -21,7 +21,8 @@ class ParticleSystem
    * @param dt - delta time
    * @param newParticles - count generating particles
    */
-  void update(float dt, size_t newParticles);
+  // template < typename Func >
+  void update(float dt, size_t newParticles);//, Func & functor);
   void render();
 
  private:
@@ -36,6 +37,7 @@ class ParticleSystem
   const float _attractor_strength = 0.4f;
 
   Particle _makeParticle();
+  void _makeNewParticles(size_t count);
 };
 
 #endif

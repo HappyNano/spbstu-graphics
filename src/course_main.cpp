@@ -235,19 +235,8 @@ int main(int argc, char ** argv)
     particleShader->use();
     particleShader->setMat4("projection", projection);
     particleShader->setMat4("view", view);
-    static double f = 0;
-    static size_t count = 0;
-    double start = static_cast< double >(glfwGetTime());
     particles.update(deltaTime, 5);
     particles.render();
-    count += 1;
-    f += static_cast< double >(glfwGetTime()) - start;
-    if (count == 1000)
-    {
-      std::cout << f / 1000 << '\n';
-      f = 0;
-      count = 0;
-    }
     glUseProgram(0);
     // End Particle
 

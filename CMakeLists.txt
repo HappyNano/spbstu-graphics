@@ -28,7 +28,9 @@ endif()
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-add_subdirectory(${EXTERNAL_DIR}/glfw)
+find_package(glm CONFIG REQUIRED)
+find_package(stb REQUIRED COMPONENTS stb_image)
+find_package(glfw3 CONFIG REQUIRED)
 
 # Добавляем пути к заголовочным файлам
 

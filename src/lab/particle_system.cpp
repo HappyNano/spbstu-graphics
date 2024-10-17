@@ -123,3 +123,6 @@ Particle ParticleSystem::_makeParticle()
 
   return particle;
 }
+
+void ParticleSystem::_makeNewParticles(size_t count)
+{}
