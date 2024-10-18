@@ -3,6 +3,8 @@
 
 #include "lab/particles/particle_container.hpp"
 
+#include <functional>
+
 #include "lab/shaders.hpp"
 #include "lab/texture.hpp"
 
@@ -20,8 +22,9 @@ class ParticleSystem
 {
  public:
   using this_t = ParticleSystem;
+  using pgenerator_t = std::function< Particle() >;
 
-  ParticleSystem(Shader::shared shader, size_t amount, glm::vec3 pos = glm::vec3(0.0f));
+  ParticleSystem(Shader::shared shader, size_t amount, const pgenerator_t & gen);
   ParticleSystem(const this_t &) = delete;
   ParticleSystem(this_t &&) = delete;
   ~ParticleSystem();
@@ -32,23 +35,23 @@ class ParticleSystem
    * @param newParticles - count generating particles
    */
   template < ParticleFunctor Func >
-  void update(float dt, size_t newParticles, Func & functor);
+  void update(float dt, size_t newParticles, Func && functor);
   void render();
 
  private:
   ParticleStorage _particles; ///< Particle Storage
   size_t _amount;             ///< Maximum amount of particles
   Shader::shared _shader_ptr; ///< Pointer to Particle Shader
+  pgenerator_t _gen;          ///< Particle Generator
 
   unsigned int _VAO; ///< Vertex Array for particle
-  glm::vec3 _pos;    ///< Emitter position (Particle's birth position)
 
   Particle _makeParticle();
   void _makeNewParticles(size_t count);
 };
 
 template < ParticleFunctor Func >
-void ParticleSystem::update(float dt, size_t newParticles, Func & functor)
+void ParticleSystem::update(float dt, size_t newParticles, Func && functor)
 {
   _makeNewParticles(newParticles); // Add new particles
   // Update all particles

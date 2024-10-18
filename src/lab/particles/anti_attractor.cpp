@@ -22,10 +22,4 @@ void AntiAttractor::operator()(Particle & particle, float dt)
 
   // Обновляем позицию частицы
   particle.pos += particle.vel * dt;
-
-  // Kill particle if particle below y=0.0
-  if (particle.pos.y <= 0.0f || particle.pos.y >= 5.0f)
-  {
-    particle.kill();
-  }
 }
