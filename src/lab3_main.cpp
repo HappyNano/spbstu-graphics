@@ -24,6 +24,7 @@
 #include "lab/figures/cylindre.hpp"
 #include "lab/figures/torus.hpp"
 #include "lab/figures/sphere.hpp"
+#include "lab/figures/model.hpp"
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
@@ -67,6 +68,7 @@ std::unique_ptr< Figure > cube;
 std::unique_ptr< Figure > cylindre;
 std::unique_ptr< Figure > torus;
 std::unique_ptr< Figure > sphere;
+std::unique_ptr< Figure > teapot;
 
 void setMaterial(const MaterialConf & material)
 {
@@ -168,6 +170,7 @@ int main(int argc, char ** argv)
   cylindre = std::make_unique< Cylindre >(0.5f, 3.0f);
   torus = std::make_unique< Torus >(0.5f, 1.0f);
   sphere = std::make_unique< Sphere >(0.5f);
+  teapot = std::make_unique< Model >("assets/teapot.obj");
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -327,6 +330,15 @@ void renderScene(Shader & shader, bool render_scene)
   model = glm::rotate(model, glm::radians(angle += 0.01), glm::normalize(glm::vec3(0.0, 1.0, 0.0)));
   shader.setMat4("model", model);
   torus->render();
+
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, grass_texture);
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(2.5f, 2.0f, -1.0f));
+  model = glm::scale(model, glm::vec3(0.1f));
+  shader.setMat4("model", model);
+  teapot->render();
 
   // sphere
   glActiveTexture(GL_TEXTURE0);
