@@ -1,4 +1,4 @@
-#include "lab/particle_system.hpp"
+#include "lab/particles/particle_system.hpp"
 
 #include <iostream> // TODO: Delete
 

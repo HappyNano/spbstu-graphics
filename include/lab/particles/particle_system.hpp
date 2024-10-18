@@ -1,7 +1,7 @@
 #ifndef PARTICLE_SYSTEM_HPP
 #define PARTICLE_SYSTEM_HPP
 
-#include "lab/particle_container.hpp"
+#include "lab/particles/particle_container.hpp"
 
 #include "lab/shaders.hpp"
 #include "lab/texture.hpp"

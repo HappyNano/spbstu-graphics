@@ -1,7 +1,7 @@
 #ifndef ATNI_ATTRACTOR_HPP
 #define ATNI_ATTRACTOR_HPP
 
-#include "lab/particle.hpp"
+#include "lab/particles/particle.hpp"
 
 class AntiAttractor final
 {

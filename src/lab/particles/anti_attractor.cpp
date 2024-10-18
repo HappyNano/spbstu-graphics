@@ -1,4 +1,4 @@
-#include "lab/anti_attractor.hpp"
+#include "lab/particles/anti_attractor.hpp"
 
 AntiAttractor::AntiAttractor(glm::vec3 pos, float strength):
   _pos{ pos },

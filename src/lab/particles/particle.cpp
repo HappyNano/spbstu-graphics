@@ -1,4 +1,4 @@
-#include "lab/particle.hpp"
+#include "lab/particles/particle.hpp"
 
 Particle::Particle():
   pos(0.0f),

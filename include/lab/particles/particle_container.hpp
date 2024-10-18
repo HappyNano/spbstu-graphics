@@ -4,7 +4,7 @@
 #include <vector>
 #include <span>
 
-#include "lab/particle.hpp"
+#include "lab/particles/particle.hpp"
 
 class ParticleStorage final
 {

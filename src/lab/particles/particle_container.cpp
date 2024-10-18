@@ -1,4 +1,4 @@
-#include "lab/particle_container.hpp"
+#include "lab/particles/particle_container.hpp"
 
 #include <stdexcept>
 #include <algorithm>
