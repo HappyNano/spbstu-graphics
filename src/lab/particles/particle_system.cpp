@@ -5,11 +5,11 @@
 #include <algorithm>
 #include <functional>
 
-ParticleSystem::ParticleSystem(Shader::shared shader, size_t amount, glm::vec3 pos):
+ParticleSystem::ParticleSystem(Shader::shared shader, size_t amount, const pgenerator_t & gen):
   _particles{ amount },
   _amount{ amount },
   _shader_ptr{ shader },
-  _pos{ pos }
+  _gen{ gen }
 {
   // Creating particle vertex buffer (one-point)
   {
@@ -57,27 +57,10 @@ void ParticleSystem::render()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-Particle ParticleSystem::_makeParticle()
-{
-  Particle particle;
-
-  float random = ((rand() % 100) - 50) / 1000.0f;
-  float rColor = 0.5f + ((rand() % 100) / 100.0f);
-  glm::vec3 rVelocity = { -std::abs((rand() % 100) - 50), (rand() % 100) - 50, 0.0f };
-  rVelocity /= 100.0f;
-
-  particle.pos = this->_pos;
-  particle.color = glm::vec4(rColor, rColor, rColor, 1.0f);
-  particle.life = 15.0f * (1.0f + (rand() % 100) / 100.0f);
-  particle.vel = rVelocity;
-
-  return particle;
-}
-
 void ParticleSystem::_makeNewParticles(size_t count)
 {
   for (size_t i = 0; i < count && !_particles.isFull(); ++i)
   {
-    this->_particles.makeParticle(_makeParticle());
+    this->_particles.makeParticle(_gen());
   }
 }

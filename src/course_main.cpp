@@ -21,8 +21,9 @@
 
 #include "lab/figures/surface.hpp"
 #include "lab/figures/sphere.hpp"
-#include "lab/particle_system.hpp"
-#include "lab/anti_attractor.hpp"
+#include "lab/particles/particle_system.hpp"
+#include "lab/particles/anti_attractor.hpp"
+#include "lab/particles/point_particle_generator.hpp"
 
 /*
 Задание 12.
@@ -31,6 +32,15 @@
 Остальные параметры устанавливаются и изменяются по вашему выбору.
 3. След: необязателен
 4. Анти-аттрактор: точка
+*/
+
+/*
+Задание 53.
+1. Эмиттер – цилиндр
+2. Обязательные параметры: прозрачность изменяется в зависимости от времени жизни
+Остальные параметры устанавливаются и изменяются по вашему выбору.
+3. След: присутствует, длина от 2 до 4
+4. Аттрактор: плоскость
 */
 
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
@@ -171,8 +181,9 @@ int main(int argc, char ** argv)
 
   // Particle System
   // ---------------
-  auto particles = ParticleSystem(particleShader, 5000, glm::vec3(0.0f, 0.5f, 0.0f));
   auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.4f);
+  auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
+  auto particles = ParticleSystem(particleShader, 5000, std::bind(&PointParticleGenerator::operator(), point_particle_gen));
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -237,7 +248,16 @@ int main(int argc, char ** argv)
     particleShader->use();
     particleShader->setMat4("projection", projection);
     particleShader->setMat4("view", view);
-    particles.update(deltaTime, 5, anti_attractor);
+    particles.update(deltaTime, 5,
+     [&anti_attractor](Particle& particle, float dt)
+     {
+       anti_attractor(particle, dt);
+       // Kill particle if particle below y=0.0
+       if (particle.pos.y <= 0.0f || particle.pos.y >= 5.0f)
+       {
+         particle.kill();
+       }
+     });
     particles.render();
     glUseProgram(0);
     // End Particle
