@@ -21,9 +21,12 @@
 
 #include "lab/figures/surface.hpp"
 #include "lab/figures/sphere.hpp"
+#include "lab/figures/cylindre.hpp"
+
 #include "lab/particles/particle_system.hpp"
 #include "lab/particles/anti_attractor.hpp"
 #include "lab/particles/point_particle_generator.hpp"
+#include "lab/particles/cylindre_particle_generator.hpp"
 
 /*
 Задание 12.
@@ -82,6 +85,7 @@ glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 // figures
 std::unique_ptr< Figure > surface;
 std::unique_ptr< Figure > sphere;
+std::unique_ptr< Figure > cylindre;
 
 void setMaterial(const MaterialConf & material)
 {
@@ -178,12 +182,14 @@ int main(int argc, char ** argv)
   // ----------------
   surface = std::make_unique< Surface >();
   sphere = std::make_unique< Sphere >(0.1f);
+  cylindre = std::make_unique< Cylindre >(0.5f, 1.0f);
 
   // Particle System
   // ---------------
-  auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.4f);
-  auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
-  auto particles = ParticleSystem(particleShader, 5000, std::bind(&PointParticleGenerator::operator(), point_particle_gen));
+  auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.5f);
+  // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
+  auto cylindre_particle_gen = CylindreParticleGenerator(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 0.5f);
+  auto particles = ParticleSystem(particleShader, 5000, std::bind(&CylindreParticleGenerator::operator(), cylindre_particle_gen));
 
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
@@ -248,8 +254,8 @@ int main(int argc, char ** argv)
     particleShader->use();
     particleShader->setMat4("projection", projection);
     particleShader->setMat4("view", view);
-    particles.update(deltaTime, 5,
-     [&anti_attractor](Particle& particle, float dt)
+    particles.update(deltaTime, 50,
+     [&anti_attractor](Particle & particle, float dt)
      {
        anti_attractor(particle, dt);
        // Kill particle if particle below y=0.0
@@ -303,8 +309,9 @@ void renderScene(Shader & shader, bool render_scene)
   surface->render();
 
   model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
   shader.setMat4("model", model);
-  sphere->render();
+  cylindre->render();
 
   model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(-2.0f, 1.5f, 0.0f));
