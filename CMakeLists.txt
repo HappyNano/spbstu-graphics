@@ -3,7 +3,7 @@ project(lab3 VERSION 0 LANGUAGES CXX C)
 
 # Включаем генерацию compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
 
 # Задаем переменные для директорий
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
