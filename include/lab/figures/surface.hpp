@@ -6,7 +6,7 @@
 class Surface final: public Figure
 {
  public:
-  Surface();
+  Surface(float size = 25.0f);
 
   void render() override;
 };

@@ -25,8 +25,11 @@
 
 #include "lab/particles/particle_system.hpp"
 #include "lab/particles/anti_attractor.hpp"
+#include "lab/particles/surface_attractor.hpp"
 #include "lab/particles/point_particle_generator.hpp"
 #include "lab/particles/cylindre_particle_generator.hpp"
+
+#include "threads/thread_pool.hpp"
 
 /*
 Задание 12.
@@ -35,15 +38,6 @@
 Остальные параметры устанавливаются и изменяются по вашему выбору.
 3. След: необязателен
 4. Анти-аттрактор: точка
-*/
-
-/*
-Задание 53.
-1. Эмиттер – цилиндр
-2. Обязательные параметры: прозрачность изменяется в зависимости от времени жизни
-Остальные параметры устанавливаются и изменяются по вашему выбору.
-3. След: присутствует, длина от 2 до 4
-4. Аттрактор: плоскость
 */
 
 /*
@@ -93,16 +87,9 @@ glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 
 // figures
 std::unique_ptr< Figure > surface;
+std::unique_ptr< Figure > surface2;
 std::unique_ptr< Figure > sphere;
 std::unique_ptr< Figure > cylindre;
-
-void setMaterial(const MaterialConf & material)
-{
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material.ambient);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material.diffuse);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material.specular);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material.shininess);
-}
 
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
@@ -190,19 +177,39 @@ int main(int argc, char ** argv)
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
+  surface2 = std::make_unique< Surface >(1.0f);
   sphere = std::make_unique< Sphere >(0.1f);
   cylindre = std::make_unique< Cylindre >(0.5f, 1.0f);
 
   // Particle System
   // ---------------
-  auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.5f);
+  // auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.5f);
+  auto surface_attractor = SurfaceAttractor(glm::vec3(0.0f, 3.0f, 0.0f), 1.0f, 2.0f);
   // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
   auto cylindre_particle_gen = CylindreParticleGenerator(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 0.5f);
-  auto particles = ParticleSystem(particleShader, 5000, std::bind(&CylindreParticleGenerator::operator(), cylindre_particle_gen));
+  auto particles = ParticleSystem(particleShader, 5000, [&cylindre_particle_gen]() { return cylindre_particle_gen(); });
 
+  ThreadPool pool(1);
+  double previousTime = glfwGetTime();
+  int frameCount = 0;
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
   {
+    auto result = pool.enqueue(
+     [&]()
+     {
+       particles.update(deltaTime, 50,
+        [&surface_attractor](Particle & particle, float dt)
+        {
+          surface_attractor(particle, dt);
+          // Kill particle if particle below y=0.0
+          // if (particle.pos.y <= 0.0f || particle.pos.y >= 5.0f)
+          // {
+          //   particle.kill();
+          // }
+        });
+       return 1;
+     });
     // per-frame time logic
     // --------------------
     glfwPollEvents();
@@ -263,16 +270,7 @@ int main(int argc, char ** argv)
     particleShader->use();
     particleShader->setMat4("projection", projection);
     particleShader->setMat4("view", view);
-    particles.update(deltaTime, 50,
-     [&anti_attractor](Particle & particle, float dt)
-     {
-       anti_attractor(particle, dt);
-       // Kill particle if particle below y=0.0
-       if (particle.pos.y <= 0.0f || particle.pos.y >= 5.0f)
-       {
-         particle.kill();
-       }
-     });
+    result.wait();
     particles.render();
     glUseProgram(0);
     // End Particle
@@ -280,6 +278,22 @@ int main(int argc, char ** argv)
     glFlush();
     // == Конец  отрисовки
     glfwSwapBuffers(window);
+
+    // Подсчет кадров
+    double currentTime = glfwGetTime();
+    frameCount++;
+
+    // Если прошло больше 1 секунды, обновляем FPS
+    if (currentTime - previousTime >= 1.0)
+    {
+      // Вычисляем FPS
+      double fps = frameCount / (currentTime - previousTime);
+      std::cout << "FPS: " << fps << std::endl;
+
+      // Сбрасываем счётчик
+      previousTime = currentTime;
+      frameCount = 0;
+    }
   }
   glDeleteTextures(1, &grass_texture.ID);
   glDeleteTextures(1, &depthMap);
@@ -322,10 +336,9 @@ void renderScene(Shader & shader, bool render_scene)
   shader.setMat4("model", model);
   cylindre->render();
 
-  model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(-2.0f, 1.5f, 0.0f));
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.0f, 0.0f));
   shader.setMat4("model", model);
-  sphere->render();
+  surface2->render();
 }
 
 void setupViewport(GLFWwindow * window)
@@ -359,6 +372,14 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
   {
     camera.ProcessKeyboard(RIGHT, deltaTime);
   }
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+  {
+    camera.ProcessKeyboard(UP, deltaTime);
+  }
+  if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+  {
+    camera.ProcessKeyboard(DOWN, deltaTime);
+  }
   if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
   {
     lightPos.x -= 0.1;
@@ -376,10 +397,6 @@ void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
 
 void cursor_position_callback(GLFWwindow * window, double xposIn, double yposIn)
 {
-  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
-  {
-    return;
-  }
   float xpos = static_cast< float >(xposIn);
   float ypos = static_cast< float >(yposIn);
   if (firstMouse)

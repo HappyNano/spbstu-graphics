@@ -11,7 +11,6 @@ uniform vec3 old_pos;
 
 void main()
 {
-  float scale = 10.0f;
   ParticleColor = color;
   if (position.x == 1.0f)
   {
