@@ -57,7 +57,7 @@ void ParticleSystem::update(float dt, size_t newParticles, Func && functor)
   // --------------------
   for (auto & particle: this->_particles.getAliveParticles())
   {
-    particle.old_pos = particle.pos;
+    particle.old_pos.push(particle.pos);
 
     particle.life -= dt;              // reduce life
     particle.vel *= 1.0f + dt / 2.0f; // increasing speed

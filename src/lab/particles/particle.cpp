@@ -1,11 +1,21 @@
 #include "lab/particles/particle.hpp"
 
 Particle::Particle():
-  pos(0.0f),
-  vel(0.0f),
-  color(1.0f),
-  life(0.0f)
+  Particle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec4(1.0f), 0.0f)
 {}
+
+Particle::Particle(glm::vec3 pos, glm::vec3 vel, glm::vec4 color, float life, size_t trace_length):
+  old_pos(),
+  pos(pos),
+  vel(vel),
+  color(color),
+  life(life)
+{
+  for (size_t i = 0; i < trace_length - 1; ++i)
+  {
+    old_pos.emplace(pos);
+  }
+}
 
 bool Particle::isDead() const
 {

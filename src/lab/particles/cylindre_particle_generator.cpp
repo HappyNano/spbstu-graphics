@@ -11,8 +11,6 @@ CylindreParticleGenerator::CylindreParticleGenerator(glm::vec3 center_pos, float
 
 Particle CylindreParticleGenerator::operator()()
 {
-  Particle particle;
-
   float rColor = 0.5f + ((rand() % 100) / 100.0f);
 
   float theta = static_cast< float >(rand()) / RAND_MAX * 2.0f * M_PI;
@@ -23,10 +21,11 @@ Particle CylindreParticleGenerator::operator()()
   float normal_x = std::cos(theta);
   float normal_z = std::sin(theta);
 
-  particle.pos = glm::vec3(x, y, z) + _center_pos;
-  particle.color = glm::vec4(rColor, rColor, rColor, 1.0f);
-  particle.life = 3.0f * (1.0f + (rand() % 100) / 100.0f);
-  particle.vel = { normal_x, 0.0f, normal_z };
-
-  return particle;
+  return Particle{
+    glm::vec3(x, y, z) + _center_pos,        // Pos
+    { normal_x, 0.0f, normal_z },            // Vel
+    glm::vec4(rColor, rColor, rColor, 1.0f), // Color
+    3.0f * (1.0f + (rand() % 100) / 100.0f), // Life
+    10                                       // Trace Length
+  };
 }
