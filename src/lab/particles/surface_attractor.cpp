@@ -13,9 +13,6 @@ void SurfaceAttractor::operator()(Particle & particle, float dt)
   // Половина стороны квадрата плоскости
   float half_size = _size / 2.0f;
 
-  // Притяжение по Y к плоскости
-  float distance_to_plane_y = particle.pos.y - _pos.y;
-
   // Притяжение по X и Z к границам квадрата
   float nearest_x = std::clamp(particle.pos.x, -half_size, half_size);
   float nearest_z = std::clamp(particle.pos.z, -half_size, half_size);
@@ -36,7 +33,4 @@ void SurfaceAttractor::operator()(Particle & particle, float dt)
     // Применяем силу к скорости
     particle.vel += force * dt;
   }
-
-  // Обновляем позицию частицы
-  particle.pos += particle.vel * dt;
 }

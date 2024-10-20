@@ -17,7 +17,7 @@ ParticleSystem::ParticleSystem(Shader::shared shader, size_t amount, const pgene
     unsigned int VBO;
     float particle_quad[] = {
       0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, //
-      1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f  //
+      1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.2f  //
     };
     glGenVertexArrays(1, &_VAO);
     glGenBuffers(1, &VBO);
@@ -44,12 +44,14 @@ void ParticleSystem::render()
   // _shader_ptr->use();
   for (auto && particle: this->_particles.getAliveParticles())
   {
-    _shader_ptr->setVec3("old_pos", particle.old_pos.front());
-    particle.old_pos.pop();
+    if (!particle.old_pos.empty())
+    {
+      _shader_ptr->setVec3("old_pos", particle.old_pos.front());
+      particle.old_pos.pop();
+    }
     _shader_ptr->setVec3("offset", particle.pos);
+    _shader_ptr->setFloat("alpha", std::min(particle.life / 3.0f, 1.0f));
     glEnable(GL_LINE_SMOOTH);
-    glPointSize(5.0f);
-    glLineWidth(10.0f);
     glBindVertexArray(this->_VAO);
     glDrawArrays(GL_LINES, 0, 2);
     glBindVertexArray(0);

@@ -17,6 +17,16 @@ Particle::Particle(glm::vec3 pos, glm::vec3 vel, glm::vec4 color, float life, si
   }
 }
 
+void Particle::set_traceLength(size_t trace_length)
+{
+  auto new_queue = std::queue< glm::vec3 >();
+  for (size_t i = 0; i < trace_length - 1; ++i)
+  {
+    new_queue.emplace(pos);
+  }
+  old_pos = std::move(new_queue);
+}
+
 bool Particle::isDead() const
 {
   return this->life <= 0.0f;

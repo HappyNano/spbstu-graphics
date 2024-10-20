@@ -11,11 +11,12 @@
 namespace
 {
   template < typename T >
-  concept ParticleFunctor = requires(T a, Particle & p, float dt) {
-    {
-      a(p, dt)
-    } -> std::same_as< void >;
-  };
+  concept ParticleFunctor =
+   requires(T a, Particle & p, float dt) {
+     {
+       a(p, dt)
+       } -> std::same_as< void >;
+   };
 }
 
 class ParticleSystem
@@ -59,10 +60,12 @@ void ParticleSystem::update(float dt, size_t newParticles, Func && functor)
   {
     particle.old_pos.push(particle.pos);
 
-    particle.life -= dt;              // reduce life
-    particle.vel *= 1.0f + dt / 2.0f; // increasing speed
+    particle.life -= dt; // reduce life
 
     functor(particle, dt);
+
+    // Обновляем позицию частицы
+    particle.pos += particle.vel * dt;
   }
   _particles.clearDeadParticles();
 }

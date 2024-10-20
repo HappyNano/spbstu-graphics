@@ -19,7 +19,4 @@ void AntiAttractor::operator()(Particle & particle, float dt)
 
   // Обновляем скорость частицы, добавляя вектор отталкивания
   particle.vel += repulsion * dt;
-
-  // Обновляем позицию частицы
-  particle.pos += particle.vel * dt;
 }

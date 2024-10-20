@@ -20,7 +20,6 @@
 #include "lab/camera.hpp"
 
 #include "lab/figures/surface.hpp"
-#include "lab/figures/sphere.hpp"
 #include "lab/figures/cylindre.hpp"
 
 #include "lab/particles/particle_system.hpp"
@@ -58,11 +57,6 @@ void check(bool error, const std::string & msg, std::function< void(void) > todo
   }
 }
 
-float randf()
-{
-  return static_cast< float >(rand()) / static_cast< float >(RAND_MAX);
-}
-
 Texture2D grass_texture;
 
 // shadow conf
@@ -70,10 +64,6 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 // camera
 Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
-float lastX = (float)W_WIDTH / 2.0;
-float lastY = (float)W_HEIGHT / 2.0;
-bool firstMouse = true;
-bool lclick = false;
 
 // meshes
 unsigned int planeVAO;
@@ -88,7 +78,6 @@ glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 // figures
 std::unique_ptr< Figure > surface;
 std::unique_ptr< Figure > surface2;
-std::unique_ptr< Figure > sphere;
 std::unique_ptr< Figure > cylindre;
 
 void setupViewport(GLFWwindow * window);
@@ -154,6 +143,7 @@ int main(int argc, char ** argv)
   // configuring
   // -----------
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
 
   // shader configuration
   // --------------------
@@ -178,38 +168,30 @@ int main(int argc, char ** argv)
   // ----------------
   surface = std::make_unique< Surface >();
   surface2 = std::make_unique< Surface >(1.0f);
-  sphere = std::make_unique< Sphere >(0.1f);
   cylindre = std::make_unique< Cylindre >(0.5f, 1.0f);
 
   // Particle System
   // ---------------
   // auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.5f);
-  auto surface_attractor = SurfaceAttractor(glm::vec3(0.0f, 3.0f, 0.0f), 1.0f, 2.0f);
+  auto surface_attractor1 = SurfaceAttractor(glm::vec3(0.0f, 5.0f, 0.0f), 1.0f, 2.0f);
+  auto surface_attractor2 = SurfaceAttractor(glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 2.0f);
   // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
-  auto cylindre_particle_gen = CylindreParticleGenerator(glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 0.5f);
-  auto particles = ParticleSystem(particleShader, 5000, [&cylindre_particle_gen]() { return cylindre_particle_gen(); });
+  auto cylindre_particle_gen = CylindreParticleGenerator(glm::vec3(0.0f, 3.0f, 0.0f), 1.0f, 0.5f);
+  auto particles = ParticleSystem(particleShader, 5000,
+   [&cylindre_particle_gen]()
+   {
+     auto particle = cylindre_particle_gen();
+     particle.set_traceLength(3);
+     return std::move(particle);
+   });
 
   ThreadPool pool(1);
   double previousTime = glfwGetTime();
   int frameCount = 0;
+  std::future< void > particle_ready = pool.enqueue([&]() {});
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
   {
-    auto result = pool.enqueue(
-     [&]()
-     {
-       particles.update(deltaTime, 50,
-        [&surface_attractor](Particle & particle, float dt)
-        {
-          surface_attractor(particle, dt);
-          // Kill particle if particle below y=0.0
-          // if (particle.pos.y <= 0.0f || particle.pos.y >= 5.0f)
-          // {
-          //   particle.kill();
-          // }
-        });
-       return 1;
-     });
     // per-frame time logic
     // --------------------
     glfwPollEvents();
@@ -225,7 +207,6 @@ int main(int argc, char ** argv)
 
     // Изменение света
     // ---------------
-
     glm::mat4 lightProjection, lightView;
     glm::mat4 lightSpaceMatrix;
     float near_plane = 1.0f, far_plane = 19.5f;
@@ -270,8 +251,25 @@ int main(int argc, char ** argv)
     particleShader->use();
     particleShader->setMat4("projection", projection);
     particleShader->setMat4("view", view);
-    result.wait();
+    particle_ready.wait();
     particles.render();
+    particle_ready = pool.enqueue(
+     [&]()
+     {
+       particles.update(deltaTime, 50,
+        [&surface_attractor1, &surface_attractor2](Particle & particle, float dt)
+        {
+          surface_attractor1(particle, dt);
+          surface_attractor2(particle, dt);
+          // Kill particle if particle below y=0.0
+          // if (particle.pos.y <= 0.0f || particle.pos.y >= 8.0f     //
+          //     || particle.pos.x <= -5.0f || particle.pos.x >= 5.0f //
+          //     || particle.pos.z <= -5.0f || particle.pos.z >= 5.0f)
+          // {
+          //   particle.kill();
+          // }
+        });
+     });
     glUseProgram(0);
     // End Particle
 
@@ -288,7 +286,7 @@ int main(int argc, char ** argv)
     {
       // Вычисляем FPS
       double fps = frameCount / (currentTime - previousTime);
-      std::cout << "FPS: " << fps << std::endl;
+      std::cout << "FPS: " << fps << '\n';
 
       // Сбрасываем счётчик
       previousTime = currentTime;
@@ -332,11 +330,15 @@ void renderScene(Shader & shader, bool render_scene)
   surface->render();
 
   model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+  model = glm::translate(model, glm::vec3(0.0f, 3.0f, 0.0f));
   shader.setMat4("model", model);
   cylindre->render();
 
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.0f, 0.0f));
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f));
+  shader.setMat4("model", model);
+  surface2->render();
+
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 0.0f));
   shader.setMat4("model", model);
   surface2->render();
 }
@@ -397,6 +399,10 @@ void scroll_callback(GLFWwindow * window, double xoffset, double yoffset)
 
 void cursor_position_callback(GLFWwindow * window, double xposIn, double yposIn)
 {
+  static float lastX = (float)W_WIDTH / 2.0;
+  static float lastY = (float)W_HEIGHT / 2.0;
+  static bool firstMouse = true;
+
   float xpos = static_cast< float >(xposIn);
   float ypos = static_cast< float >(yposIn);
   if (firstMouse)

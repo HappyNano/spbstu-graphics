@@ -9,9 +9,11 @@ uniform mat4 view;
 uniform vec3 offset;
 uniform vec3 old_pos;
 
+uniform float alpha;
+
 void main()
 {
-  ParticleColor = color;
+  ParticleColor = vec4(color.xyz, alpha);
   if (position.x == 1.0f)
   {
     gl_Position = projection * view * vec4(old_pos, 1.0);

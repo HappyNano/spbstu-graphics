@@ -25,7 +25,6 @@ Particle CylindreParticleGenerator::operator()()
     glm::vec3(x, y, z) + _center_pos,        // Pos
     { normal_x, 0.0f, normal_z },            // Vel
     glm::vec4(rColor, rColor, rColor, 1.0f), // Color
-    3.0f * (1.0f + (rand() % 100) / 100.0f), // Life
-    10                                       // Trace Length
+    3.0f * (1.0f + (rand() % 100) / 100.0f)  // Life
   };
 }

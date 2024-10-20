@@ -14,6 +14,8 @@ struct Particle
   Particle();
   Particle(glm::vec3 pos, glm::vec3 vel, glm::vec4 color, float life, size_t trace_length = 1);
 
+  void set_traceLength(size_t trace_length);
+
   bool isDead() const;
   void kill();
 };
