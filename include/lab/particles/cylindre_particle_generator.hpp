@@ -1,5 +1,5 @@
-#ifndef Cylindre_PARTICLE_GENERATOR_HPP
-#define Cylindre_PARTICLE_GENERATOR_HPP
+#ifndef CYLINDRE_PARTICLE_GENERATOR_HPP
+#define CYLINDRE_PARTICLE_GENERATOR_HPP
 
 #include "lab/particles/particle.hpp"
 

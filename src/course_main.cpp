@@ -182,6 +182,9 @@ int main(int argc, char ** argv)
    {
      auto particle = cylindre_particle_gen();
      particle.set_traceLength(3);
+     float rColor = 0.5f + ((rand() % 100) / 100.0f);
+     particle.color = glm::vec4(rColor, rColor, rColor, 1.0f); // Color
+     particle.life = 3.0f * (1.0f + (rand() % 100) / 100.0f);  // Life
      return std::move(particle);
    });
 
