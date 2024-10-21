@@ -2,51 +2,56 @@
 
 #include "glad/glad.h"
 
-Cube::Cube()
+Cube::Cube(float length)
 {
   float vertices[] = {
     // back face
-    -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-    1.0f, 2.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,  // top-right
-    1.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,  // bottom-right
-    1.0f, 2.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,  // top-right
-    -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-    -1.0f, 2.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // top-left
+    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+    (length / 2.0f), (length / 2.0f), -(length / 2.0f), 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,   // top-right
+    (length / 2.0f), -(length / 2.0f), -(length / 2.0f), 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,  // bottom-right
+    (length / 2.0f), (length / 2.0f), -(length / 2.0f), 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,   // top-right
+    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+    -(length / 2.0f), (length / 2.0f), -(length / 2.0f), 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,  // top-left
+
     // front face
-    -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-    1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
-    1.0f, 2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top-right
-    1.0f, 2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top-right
-    -1.0f, 2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // top-left
-    -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
+    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
+    (length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
+    (length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,   // top-right
+    (length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,   // top-right
+    -(length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // top-left
+    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
+
     // left face
-    -1.0f, 2.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // top-right
-    -1.0f, 2.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-left
-    -1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-    -1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-    -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
-    -1.0f, 2.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // top-right
-                                                       // right face
-    1.0f, 2.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,    // top-left
-    1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,   // bottom-right
-    1.0f, 2.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top-right
-    1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,   // bottom-right
-    1.0f, 2.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,    // top-left
-    1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,    // bottom-left
+    -(length / 2.0f), (length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-right
+    -(length / 2.0f), (length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top-left
+    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
+    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
+    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
+    -(length / 2.0f), (length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-right
+
+    // right face
+    (length / 2.0f), (length / 2.0f), (length / 2.0f), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-left
+    (length / 2.0f), -(length / 2.0f), -(length / 2.0f), 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-right
+    (length / 2.0f), (length / 2.0f), -(length / 2.0f), 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top-right
+    (length / 2.0f), -(length / 2.0f), -(length / 2.0f), 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-right
+    (length / 2.0f), (length / 2.0f), (length / 2.0f), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-left
+    (length / 2.0f), -(length / 2.0f), (length / 2.0f), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-left
+
     // bottom face
-    -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-    1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,  // top-left
-    1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom-left
-    1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom-left
-    -1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
-    -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
+    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
+    (length / 2.0f), -(length / 2.0f), -(length / 2.0f), 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,  // top-left
+    (length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom-left
+    (length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom-left
+    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
+    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
+
     // top face
-    -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
-    1.0f, 2.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // bottom-right
-    1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  // top-right
-    1.0f, 2.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // bottom-right
-    -1.0f, 2.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
-    -1.0f, 2.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f   // bottom-left
+    -(length / 2.0f), (length / 2.0f), -(length / 2.0f), 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
+    (length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // bottom-right
+    (length / 2.0f), (length / 2.0f), -(length / 2.0f), 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,  // top-right
+    (length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,   // bottom-right
+    -(length / 2.0f), (length / 2.0f), -(length / 2.0f), 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
+    -(length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f   // bottom-left
   };
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);

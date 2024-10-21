@@ -6,7 +6,7 @@
 class Cube final: public Figure
 {
  public:
-  Cube();
+  Cube(float length);
 
   void render() override;
 };

@@ -164,7 +164,7 @@ int main(int argc, char ** argv)
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
-  cube = std::make_unique< Cube >();
+  cube = std::make_unique< Cube >(2.0f);
   cylindre = std::make_unique< Cylindre >(0.5f, 3.0f);
   torus = std::make_unique< Torus >(0.5f, 1.0f);
   sphere = std::make_unique< Sphere >(0.5f);
