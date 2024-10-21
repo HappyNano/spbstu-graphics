@@ -15,6 +15,7 @@ Particle SphereParticleGenerator::operator()()
   const float phi = static_cast< float >(rand()) / RAND_MAX * M_PI;          // Угол высоты от 0 до π
 
   glm::vec3 point = { _radius * sin(phi) * cos(theta), _radius * cos(phi), _radius * sin(phi) * sin(theta) };
+  point += _center_pos;
 
   return Particle{
     point,                              // Pos
