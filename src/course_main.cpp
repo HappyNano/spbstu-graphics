@@ -23,6 +23,7 @@
 #include "lab/figures/sphere.hpp"
 #include "lab/figures/cylindre.hpp"
 #include "lab/figures/cube.hpp"
+#include "lab/figures/cone.hpp"
 
 #include "lab/particles/particle_system.hpp"
 #include "lab/particles/anti_attractor.hpp"
@@ -32,6 +33,8 @@
 #include "lab/particles/cylindre_particle_generator.hpp"
 #include "lab/particles/sphere_particle_generator.hpp"
 #include "lab/particles/cylinder_attractor.hpp"
+#include "lab/particles/cone_particle_generator.hpp"
+#include "lab/particles/sphere_collider.hpp"
 
 #include "threads/thread_pool.hpp"
 
@@ -86,6 +89,7 @@ std::unique_ptr< Figure > surface2;
 std::unique_ptr< Figure > sphere;
 std::unique_ptr< Figure > cube;
 std::unique_ptr< Figure > cylinder;
+std::unique_ptr< Figure > cone;
 
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
@@ -178,6 +182,7 @@ int main(int argc, char ** argv)
   sphere = std::make_unique< Sphere >(0.5f);
   cube = std::make_unique< Cube >(1.0f);
   cylinder = std::make_unique< Cylindre >(0.5f, 1.0f);
+  cone = std::make_unique< Cone >(0.5f, 1.0f);
 
   // Particle System
   // ---------------
@@ -185,13 +190,15 @@ int main(int argc, char ** argv)
   auto surface_attractor1 = SurfaceAttractor(glm::vec3(0.0f, 5.0f, 0.0f), 1.0f, 2.0f);
   auto surface_attractor2 = SurfaceAttractor(glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 2.0f);
   auto cube_collider = CubeCollider(dynamic_cast< Cube & >(*cube), glm::vec3(3.0f, 2.5f, 1.5f), 1.0f);
-  auto cylinder_collider = CylinderAttractor(glm::vec3(-2.0f, 3.0f, 0.0f), 0.5f, 1.0f, -4.0f);
+  auto sphere_collider = SphereCollider(glm::vec3(3.0f, 2.5f, -1.5f), 0.5f);
+  auto cylinder_attractor = CylinderAttractor(glm::vec3(-2.0f, 3.0f, 0.0f), 0.5f, 1.0f, -4.0f);
   // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
   auto sphere_particle_gen = SphereParticleGenerator(glm::vec3(0.0f, 3.5f, 0.0f), 0.5f);
+  auto cone_particle_gen = ConeParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f), 1.0f, 0.5f);
   auto particles = ParticleSystem(particleShader, 5000,
-   [&sphere_particle_gen]()
+   [&cone_particle_gen]()
    {
-     auto particle = sphere_particle_gen();
+     auto particle = cone_particle_gen();
      particle.set_traceLength(3);
      float rColor = 0.5f + ((rand() % 100) / 100.0f);
      particle.color = glm::vec4(rColor, rColor, rColor, 1.0f); // Color
@@ -271,12 +278,13 @@ int main(int argc, char ** argv)
      [&]()
      {
        particles.update(deltaTime, 50,
-        [&surface_attractor1, &surface_attractor2, &cube_collider, &cylinder_collider](Particle & particle, float dt)
+        [&](Particle & particle, float dt)
         {
-          surface_attractor1(particle, dt);
-          surface_attractor2(particle, dt);
-          cylinder_collider(particle, dt);
+          // surface_attractor1(particle, dt);
+          // surface_attractor2(particle, dt);
+          // cylinder_attractor(particle, dt);
           cube_collider(particle, dt);
+          sphere_collider(particle, dt);
           // Kill particle if particle below y=0.0
           // if (particle.pos.y <= 0.0f || particle.pos.y >= 8.0f     //
           //     || particle.pos.x <= -5.0f || particle.pos.x >= 5.0f //
@@ -338,9 +346,12 @@ void renderScene(Shader & shader, bool render_scene)
   surface->render();
 
   model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(0.0f, 3.5f, 0.0f));
+  // model = glm::translate(model, glm::vec3(0.0f, 3.5f, 0.0f));
+  // shader.setMat4("model", model);
+  // sphere->render();
+  model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
   shader.setMat4("model", model);
-  sphere->render();
+  cone->render();
 
   model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f));
   shader.setMat4("model", model);
@@ -353,6 +364,10 @@ void renderScene(Shader & shader, bool render_scene)
   model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 2.5f, 1.5f));
   shader.setMat4("model", model);
   cube->render();
+
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 2.5f, -1.5f));
+  shader.setMat4("model", model);
+  sphere->render();
 
   model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 3.0f, 0.0f));
   shader.setMat4("model", model);
