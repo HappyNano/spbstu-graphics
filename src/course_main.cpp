@@ -22,10 +22,12 @@
 #include "lab/figures/surface.hpp"
 #include "lab/figures/sphere.hpp"
 #include "lab/figures/cylindre.hpp"
+#include "lab/figures/cube.hpp"
 
 #include "lab/particles/particle_system.hpp"
 #include "lab/particles/anti_attractor.hpp"
 #include "lab/particles/surface_attractor.hpp"
+#include "lab/particles/cube_collider.hpp"
 #include "lab/particles/point_particle_generator.hpp"
 #include "lab/particles/cylindre_particle_generator.hpp"
 #include "lab/particles/sphere_particle_generator.hpp"
@@ -81,6 +83,7 @@ glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 std::unique_ptr< Figure > surface;
 std::unique_ptr< Figure > surface2;
 std::unique_ptr< Figure > sphere;
+std::unique_ptr< Figure > cube;
 
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
@@ -171,12 +174,14 @@ int main(int argc, char ** argv)
   surface = std::make_unique< Surface >();
   surface2 = std::make_unique< Surface >(1.0f);
   sphere = std::make_unique< Sphere >(0.5f);
+  cube = std::make_unique< Cube >(1.0f);
 
   // Particle System
   // ---------------
   // auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.5f);
   auto surface_attractor1 = SurfaceAttractor(glm::vec3(0.0f, 5.0f, 0.0f), 1.0f, 2.0f);
   auto surface_attractor2 = SurfaceAttractor(glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 2.0f);
+  auto cube_collider = CubeCollider(dynamic_cast< Cube & >(*cube), glm::vec3(3.0f, 2.5f, 1.5f), 1.0f);
   // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
   auto sphere_particle_gen = SphereParticleGenerator(glm::vec3(0.0f, 3.5f, 0.0f), 0.5f);
   auto particles = ParticleSystem(particleShader, 5000,
@@ -186,7 +191,7 @@ int main(int argc, char ** argv)
      particle.set_traceLength(3);
      float rColor = 0.5f + ((rand() % 100) / 100.0f);
      particle.color = glm::vec4(rColor, rColor, rColor, 1.0f); // Color
-     particle.life = 3.0f * (1.0f + (rand() % 100) / 100.0f);  // Life
+     particle.life = 5.0f * (1.0f + (rand() % 100) / 100.0f);  // Life
      return std::move(particle);
    });
 
@@ -262,10 +267,11 @@ int main(int argc, char ** argv)
      [&]()
      {
        particles.update(deltaTime, 50,
-        [&surface_attractor1, &surface_attractor2](Particle & particle, float dt)
+        [&surface_attractor1, &surface_attractor2, &cube_collider](Particle & particle, float dt)
         {
-          surface_attractor1(particle, dt);
-          surface_attractor2(particle, dt);
+          // surface_attractor1(particle, dt);
+          // surface_attractor2(particle, dt);
+          cube_collider(particle, dt);
           // Kill particle if particle below y=0.0
           // if (particle.pos.y <= 0.0f || particle.pos.y >= 8.0f     //
           //     || particle.pos.x <= -5.0f || particle.pos.x >= 5.0f //
@@ -324,14 +330,6 @@ void renderScene(Shader & shader, bool render_scene)
   glBindTexture(GL_TEXTURE_2D, grass_texture.ID);
   glm::mat4 model = glm::mat4(1.0f);
   shader.setMat4("model", model);
-  if (render_scene)
-  {
-    shader.setVec3("material.ambient", 0.3f, 0.6f, 0.3f);
-    shader.setVec3("material.diffuse", 0.3f, 0.6f, 0.3f);
-    shader.setVec3("material.specular", 0.3f, 0.5f, 0.3f);
-    shader.setFloat("material.shininess", 5.0f);
-    shader.setFloat("alpha", 0.3f);
-  }
   surface->render();
 
   model = glm::mat4(1.0f);
@@ -346,6 +344,10 @@ void renderScene(Shader & shader, bool render_scene)
   model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 0.0f));
   shader.setMat4("model", model);
   surface2->render();
+
+  model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 2.5f, 1.5f));
+  shader.setMat4("model", model);
+  cube->render();
 }
 
 void setupViewport(GLFWwindow * window)

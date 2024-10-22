@@ -2,7 +2,8 @@
 
 #include "glad/glad.h"
 
-Cube::Cube(float length)
+Cube::Cube(float length):
+  _length{ length }
 {
   float vertices[] = {
     // back face
@@ -15,19 +16,19 @@ Cube::Cube(float length)
 
     // front face
     -(length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-    (length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
+    (length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,   // bottom-right
+    (length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // top-right
     (length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,   // top-right
-    (length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,   // top-right
-    -(length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // top-left
-    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
+    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // top-left
+    -(length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // bottom-left
 
     // left face
     -(length / 2.0f), (length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-right
-    -(length / 2.0f), (length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top-left
+    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top-left
+    -(length / 2.0f), (length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // bottom-left
     -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-    -(length / 2.0f), -(length / 2.0f), -(length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
-    -(length / 2.0f), (length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-right
+    -(length / 2.0f), (length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // bottom-right
+    -(length / 2.0f), -(length / 2.0f), (length / 2.0f), -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // top-right
 
     // right face
     (length / 2.0f), (length / 2.0f), (length / 2.0f), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top-left
@@ -53,6 +54,14 @@ Cube::Cube(float length)
     -(length / 2.0f), (length / 2.0f), -(length / 2.0f), 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
     -(length / 2.0f), (length / 2.0f), (length / 2.0f), 0.0f, 1.0f, 0.0f, 0.0f, 0.0f   // bottom-left
   };
+  _planes = {
+    Plane{ glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3((length / 2.0f), -(length / 2.0f), -(length / 2.0f)) }, // back face
+    Plane{ glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3((length / 2.0f), (length / 2.0f), (length / 2.0f)) },    // front face
+    Plane{ glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-(length / 2.0f), (length / 2.0f), -(length / 2.0f)) }, // left face
+    Plane{ glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3((length / 2.0f), (length / 2.0f), -(length / 2.0f)) },   // right face
+    Plane{ glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3((length / 2.0f), -(length / 2.0f), (length / 2.0f)) },  // bottom face
+    Plane{ glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3((length / 2.0f), (length / 2.0f), -(length / 2.0f)) }    // top face
+  };
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
   // fill buffer
@@ -75,4 +84,14 @@ void Cube::render()
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, 36);
   glBindVertexArray(0);
+}
+
+std::vector< Plane > Cube::getPlanes() const
+{
+  return _planes;
+}
+
+float Cube::getLength() const noexcept
+{
+  return _length;
 }
