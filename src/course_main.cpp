@@ -19,6 +19,8 @@
 #include "lab/shaders.hpp"
 #include "lab/camera.hpp"
 
+#include "lab/model_view.hpp"
+
 #include "lab/figures/surface.hpp"
 #include "lab/figures/sphere.hpp"
 #include "lab/figures/cylindre.hpp"
@@ -85,7 +87,7 @@ glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 
 // figures
 std::unique_ptr< Figure > surface;
-std::unique_ptr< Figure > surface2;
+std::unique_ptr< Figure > surface2, surface3;
 std::unique_ptr< Figure > sphere;
 std::unique_ptr< Figure > cube;
 std::unique_ptr< Figure > cylinder;
@@ -178,11 +180,24 @@ int main(int argc, char ** argv)
   // Figures creating
   // ----------------
   surface = std::make_unique< Surface >();
+
   surface2 = std::make_unique< Surface >(1.0f);
+  surface2->modelView().translate({ 0.0f, 5.0f, 0.0f });
+
+  surface3 = std::make_unique< Surface >(1.0f);
+  surface3->modelView().translate({ 0.0f, 2.0f, 0.0f });
+
   sphere = std::make_unique< Sphere >(0.5f);
+  sphere->modelView().translate({ 3.0f, 2.5f, -1.5f });
+
   cube = std::make_unique< Cube >(1.0f);
+  cube->modelView().translate({ 3.0f, 2.5f, 1.5f });
+
   cylinder = std::make_unique< Cylindre >(0.5f, 1.0f);
+  cylinder->modelView().translate({ -2.0f, 3.0f, 0.0f });
+
   cone = std::make_unique< Cone >(0.5f, 1.0f);
+  cone->modelView().translate({ 0.0f, 0.5f, 0.0f });
 
   // Particle System
   // ---------------
@@ -280,18 +295,18 @@ int main(int argc, char ** argv)
        particles.update(deltaTime, 50,
         [&](Particle & particle, float dt)
         {
-          // surface_attractor1(particle, dt);
-          // surface_attractor2(particle, dt);
-          // cylinder_attractor(particle, dt);
+          surface_attractor1(particle, dt);
+          surface_attractor2(particle, dt);
+          cylinder_attractor(particle, dt);
           cube_collider(particle, dt);
           sphere_collider(particle, dt);
           // Kill particle if particle below y=0.0
-          // if (particle.pos.y <= 0.0f || particle.pos.y >= 8.0f     //
-          //     || particle.pos.x <= -5.0f || particle.pos.x >= 5.0f //
-          //     || particle.pos.z <= -5.0f || particle.pos.z >= 5.0f)
-          // {
-          //   particle.kill();
-          // }
+          if (particle.pos.y <= 0.0f || particle.pos.y >= 8.0f     //
+              || particle.pos.x <= -5.0f || particle.pos.x >= 5.0f //
+              || particle.pos.z <= -5.0f || particle.pos.z >= 5.0f)
+          {
+            particle.kill();
+          }
         });
      });
     glUseProgram(0);
@@ -341,36 +356,25 @@ void renderScene(Shader & shader, bool render_scene)
   // floor
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, grass_texture.ID);
-  glm::mat4 model = glm::mat4(1.0f);
-  shader.setMat4("model", model);
+  shader.setMat4("model", surface->modelView().get_modelView());
   surface->render();
 
-  model = glm::mat4(1.0f);
-  // model = glm::translate(model, glm::vec3(0.0f, 3.5f, 0.0f));
-  // shader.setMat4("model", model);
-  // sphere->render();
-  model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
-  shader.setMat4("model", model);
+  shader.setMat4("model", cone->modelView().get_modelView());
   cone->render();
 
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f));
-  shader.setMat4("model", model);
+  shader.setMat4("model", surface2->modelView().get_modelView());
   surface2->render();
 
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 0.0f));
-  shader.setMat4("model", model);
+  shader.setMat4("model", surface3->modelView().get_modelView());
   surface2->render();
 
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 2.5f, 1.5f));
-  shader.setMat4("model", model);
+  shader.setMat4("model", cube->modelView().get_modelView());
   cube->render();
 
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 2.5f, -1.5f));
-  shader.setMat4("model", model);
+  shader.setMat4("model", sphere->modelView().get_modelView());
   sphere->render();
 
-  model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 3.0f, 0.0f));
-  shader.setMat4("model", model);
+  shader.setMat4("model", cylinder->modelView().get_modelView());
   cylinder->render();
 }
 
