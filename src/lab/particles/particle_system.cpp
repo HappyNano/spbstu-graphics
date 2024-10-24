@@ -1,7 +1,5 @@
 #include "lab/particles/particle_system.hpp"
 
-#include <iostream> // TODO: Delete
-
 #include <algorithm>
 #include <functional>
 

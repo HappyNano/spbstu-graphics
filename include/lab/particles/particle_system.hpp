@@ -6,7 +6,6 @@
 #include <functional>
 
 #include "lab/shaders.hpp"
-#include "lab/texture.hpp"
 
 namespace
 {

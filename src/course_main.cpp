@@ -1,29 +1,19 @@
 #include <iostream>
-#include <string>
 
 // Подключение GLAD до GLFW
 #include "glad/glad.h"
-#include <GL/freeglut.h>
-#include <glm/ext.hpp>
 
 #include <GLFW/glfw3.h>
 
-#include <math.h>
-#include <unistd.h>
-
 #include "lab/settings.hpp"
-#include "lab/material.hpp"
 #include "lab/texture.hpp"
-#include "lab/shaders.hpp"
 #include "lab/camera.hpp"
 #include "lab/text.hpp"
 #include "lab/fps_counter.hpp"
 
 #include "lab/particles/particle_system.hpp"
-#include "lab/particles/anti_attractor.hpp"
 #include "lab/particles/surface_attractor.hpp"
 #include "lab/particles/cube_collider.hpp"
-#include "lab/particles/point_particle_generator.hpp"
 #include "lab/particles/cylindre_particle_generator.hpp"
 #include "lab/particles/sphere_particle_generator.hpp"
 #include "lab/particles/cylinder_attractor.hpp"
@@ -61,8 +51,6 @@ void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
 
 int main(int argc, char ** argv)
 {
-  glutInit(&argc, argv); // Инициализация GLUT
-
   check(!glfwInit(), "GLFW Bad initialization"); // Инициализация GLFW
 
   // Окно

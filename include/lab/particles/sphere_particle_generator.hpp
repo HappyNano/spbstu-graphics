@@ -2,7 +2,6 @@
 #define SPHERE_PARTICLE_GENERATOR_HPP
 
 #include "lab/particles/particle.hpp"
-
 #include "lab/figures/sphere.hpp"
 
 class SphereParticleGenerator
