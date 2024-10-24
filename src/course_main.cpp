@@ -2,6 +2,7 @@
 
 // Подключение GLAD до GLFW
 #include "glad/glad.h"
+#include <GL/freeglut.h>
 
 #include <GLFW/glfw3.h>
 
@@ -51,6 +52,8 @@ void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
 
 int main(int argc, char ** argv)
 {
+  glutInit(&argc, argv); // Инициализация GLUT
+
   check(!glfwInit(), "GLFW Bad initialization"); // Инициализация GLFW
 
   // Окно
