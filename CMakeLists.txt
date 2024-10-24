@@ -31,6 +31,7 @@ find_package(GLUT REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(stb REQUIRED COMPONENTS stb_image)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
 
 # Добавляем пути к заголовочным файлам
 

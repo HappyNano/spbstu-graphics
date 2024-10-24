@@ -1,7 +1,5 @@
 #include <iostream>
-#include <functional>
 #include <string>
-#include <memory>
 
 // Подключение GLAD до GLFW
 #include "glad/glad.h"
@@ -18,14 +16,8 @@
 #include "lab/texture.hpp"
 #include "lab/shaders.hpp"
 #include "lab/camera.hpp"
-
-#include "lab/model_view.hpp"
-
-#include "lab/figures/surface.hpp"
-#include "lab/figures/sphere.hpp"
-#include "lab/figures/cylindre.hpp"
-#include "lab/figures/cube.hpp"
-#include "lab/figures/cone.hpp"
+#include "lab/text.hpp"
+#include "lab/fps_counter.hpp"
 
 #include "lab/particles/particle_system.hpp"
 #include "lab/particles/anti_attractor.hpp"
@@ -88,7 +80,7 @@ glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 // figures
 std::shared_ptr< Figure > surface;
 std::shared_ptr< Figure > surface2, surface3;
-std::shared_ptr< Figure > sphere;
+std::shared_ptr< Figure > sphere, sphere_gen;
 std::shared_ptr< Figure > cube;
 std::shared_ptr< Figure > cylinder;
 std::shared_ptr< Figure > cone;
@@ -126,11 +118,23 @@ int main(int argc, char ** argv)
   glfwSetCursorPosCallback(window, cursor_position_callback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+  FT_Library ft;
+  check(FT_Init_FreeType(&ft), "Could not init freetype library");
+
+  Text text(ft, "assets/font.ttf");
+
   // Подключение шейдеров и текстур
   grass_texture = loadTexture("assets/grass.png");
   Shader shader("src/shaders/shading.vert", "src/shaders/shading.frag");
   Shader simpleDepthShader("src/shaders/depth.vert", "src/shaders/depth.frag");
+  auto font_shader = Shader::makeShared("src/shaders/font.vert", "src/shaders/font.frag");
   auto particleShader = Shader::makeShared("src/shaders/particle_shader.vert", "src/shaders/particle_shader.frag");
+
+  {
+    glm::mat4 font_projection_m = glm::ortho(0.0f, static_cast< float >(W_WIDTH), 0.0f, static_cast< float >(W_HEIGHT));
+    font_shader->use();
+    font_shader->setMat4("projection", font_projection_m);
+  }
 
   // Создаем и настраиваем карту глубины FBO
   // -----------------------
@@ -190,6 +194,9 @@ int main(int argc, char ** argv)
   sphere = std::make_shared< Sphere >(0.5f);
   sphere->modelView().translate({ 3.0f, 2.5f, -1.5f });
 
+  sphere_gen = std::make_shared< Sphere >(0.5f);
+  sphere_gen->modelView().translate({ 0.0f, 3.5f, 0.0f });
+
   cube = std::make_shared< Cube >(1.0f);
   cube->modelView().translate({ 3.0f, 2.5f, 1.5f });
 
@@ -208,12 +215,12 @@ int main(int argc, char ** argv)
   auto sphere_collider = SphereCollider(std::dynamic_pointer_cast< Sphere >(sphere));
   auto cylinder_attractor = CylinderAttractor(std::dynamic_pointer_cast< Cylindre >(cylinder), -4.0f);
   // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
-  auto sphere_particle_gen = SphereParticleGenerator(std::dynamic_pointer_cast< Sphere >(sphere));
+  auto sphere_particle_gen = SphereParticleGenerator(std::dynamic_pointer_cast< Sphere >(sphere_gen));
   auto cone_particle_gen = ConeParticleGenerator(std::dynamic_pointer_cast< Cone >(cone));
   auto particles = ParticleSystem(particleShader, 5000,
-   [&cone_particle_gen]()
+   [&sphere_particle_gen]()
    {
-     auto particle = cone_particle_gen();
+     auto particle = sphere_particle_gen();
      particle.set_traceLength(3);
      float rColor = 0.5f + ((rand() % 100) / 100.0f);
      particle.color = glm::vec4(rColor, rColor, rColor, 1.0f); // Color
@@ -222,9 +229,8 @@ int main(int argc, char ** argv)
    });
 
   ThreadPool pool(1);
-  double previousTime = glfwGetTime();
-  int frameCount = 0;
   std::future< void > particle_ready = pool.enqueue([&]() {});
+  FpsCounter fps(glfwGetTime());
   // Цикл отрисовки
   while (!glfwWindowShouldClose(window))
   {
@@ -311,26 +317,14 @@ int main(int argc, char ** argv)
      });
     glUseProgram(0);
     // End Particle
+    text.render(font_shader, std::to_string(fps.get()), 0.5f, W_HEIGHT - 20.0f, 0.5f, glm::vec3(0.2, 0.8f, 0.2f));
 
+    // Конец  отрисовки
     glFlush();
-    // == Конец  отрисовки
     glfwSwapBuffers(window);
 
     // Подсчет кадров
-    double currentTime = glfwGetTime();
-    frameCount++;
-
-    // Если прошло больше 1 секунды, обновляем FPS
-    if (currentTime - previousTime >= 1.0)
-    {
-      // Вычисляем FPS
-      double fps = frameCount / (currentTime - previousTime);
-      std::cout << "FPS: " << fps << '\n';
-
-      // Сбрасываем счётчик
-      previousTime = currentTime;
-      frameCount = 0;
-    }
+    fps.update(glfwGetTime());
   }
   glDeleteTextures(1, &grass_texture.ID);
   glDeleteTextures(1, &depthMap);
@@ -361,6 +355,7 @@ void renderScene(Shader & shader)
   surface3->render_modelView(shader);
   cube->render_modelView(shader);
   sphere->render_modelView(shader);
+  sphere_gen->render_modelView(shader);
   cylinder->render_modelView(shader);
 }
 

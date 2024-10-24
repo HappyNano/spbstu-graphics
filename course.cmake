@@ -7,7 +7,7 @@ target_include_directories(course PRIVATE
     ${GLUT_INCLUDE_DIR}
 )
 
-target_link_libraries(course glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} glm::glm stb::stb_image)
+target_link_libraries(course glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} glm::glm stb::stb_image Freetype::Freetype)
 
 set_target_properties(course PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY})
 

@@ -7,7 +7,7 @@ target_include_directories(lab3 PRIVATE
     ${GLUT_INCLUDE_DIR}
 )
 
-target_link_libraries(lab3 glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} glm::glm stb::stb_image)
+target_link_libraries(lab3 glfw ${GLFW_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} glm::glm stb::stb_image Freetype::Freetype)
 
 set_target_properties(lab3 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY})
 
