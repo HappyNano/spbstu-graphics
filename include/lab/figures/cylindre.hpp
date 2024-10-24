@@ -3,17 +3,20 @@
 
 #include "lab/figures/figure.hpp"
 
-#include <vector>
-
 class Cylindre final: public Figure
 {
  public:
   Cylindre(float radius, float height);
 
-  void render() override;
+  float get_radius() const noexcept;
+  float get_height() const noexcept;
 
  private:
+  float _radius, _height;
+
   size_t _vertices_count = 0;
+
+  void _render() override;
 };
 
 #endif

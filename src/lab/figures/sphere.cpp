@@ -3,9 +3,11 @@
 #include "glad/glad.h"
 #include <glm/glm.hpp>
 
+#include <vector>
 #include <cmath>
 
-Sphere::Sphere(float radius)
+Sphere::Sphere(float radius):
+  _radius{ radius }
 {
   int stackCount = 64, sectorCount = 64;
 
@@ -101,7 +103,7 @@ Sphere::Sphere(float radius)
   glBindVertexArray(0);
 }
 
-void Sphere::render()
+void Sphere::_render()
 {
   glBindVertexArray(VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -110,4 +112,9 @@ void Sphere::render()
    (void *)0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
+}
+
+float Sphere::get_radius() const
+{
+  return _radius;
 }

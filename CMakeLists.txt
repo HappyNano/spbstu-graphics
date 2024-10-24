@@ -3,6 +3,7 @@ project(lab3 VERSION 0 LANGUAGES CXX C)
 
 # Включаем генерацию compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 20)
 
 # Задаем переменные для директорий
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -27,7 +28,10 @@ endif()
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-add_subdirectory(${EXTERNAL_DIR}/glfw)
+find_package(glm CONFIG REQUIRED)
+find_package(stb REQUIRED COMPONENTS stb_image)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
 
 # Добавляем пути к заголовочным файлам
 
@@ -52,3 +56,5 @@ add_custom_target(
 include(lab2.cmake)
 # Создаем исполняемый файл для лабораторной №2
 include(lab3.cmake)
+# Создаем исполняемый файл для курсовой
+include(course.cmake)

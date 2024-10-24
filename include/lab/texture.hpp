@@ -4,6 +4,13 @@
 #include "glad/glad.h"
 #include <string>
 
-GLuint loadTexture(const std::string & filename);
+struct Texture2D final
+{
+  GLuint ID;
+
+  void bind() const;
+};
+
+Texture2D loadTexture(const std::string & filename);
 
 #endif

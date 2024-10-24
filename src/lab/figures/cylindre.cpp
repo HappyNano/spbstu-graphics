@@ -3,8 +3,11 @@
 #include "glad/glad.h"
 
 #include <cmath>
+#include <vector>
 
-Cylindre::Cylindre(float radius, float height)
+Cylindre::Cylindre(float radius, float height):
+  _radius(radius),
+  _height(height)
 {
   const int sides = 128;
 
@@ -50,9 +53,18 @@ Cylindre::Cylindre(float radius, float height)
   glBindVertexArray(0);
 }
 
-void Cylindre::render()
+void Cylindre::_render()
 {
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertices_count);
   glBindVertexArray(0);
+}
+
+float Cylindre::get_radius() const noexcept
+{
+  return _radius;
+}
+float Cylindre::get_height() const noexcept
+{
+  return _height;
 }

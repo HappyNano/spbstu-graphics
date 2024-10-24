@@ -6,9 +6,14 @@
 class Surface final: public Figure
 {
  public:
-  Surface();
+  Surface(float size = 25.0f);
 
-  void render() override;
+  float get_size() const noexcept;
+
+ private:
+  float _size;
+
+  void _render() override;
 };
 
 #endif

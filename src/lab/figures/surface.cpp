@@ -2,19 +2,20 @@
 
 #include "glad/glad.h"
 
-Surface::Surface()
+Surface::Surface(float size):
+  _size(size)
 {
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   float planeVertices[] = {
     // positions         // normals        // texcoords
-    25.0f, 0.0f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,   //
-    -25.0f, 0.0f, 25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,   //
-    -25.0f, 0.0f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f, //
+    size, 0.0f, size, 0.0f, 1.0f, 0.0f, size, 0.0f,   //
+    -size, 0.0f, size, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  //
+    -size, 0.0f, -size, 0.0f, 1.0f, 0.0f, 0.0f, size, //
 
-    25.0f, 0.0f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,   //
-    -25.0f, 0.0f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f, //
-    25.0f, 0.0f, -25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 25.0f  //
+    size, 0.0f, size, 0.0f, 1.0f, 0.0f, size, 0.0f,   //
+    -size, 0.0f, -size, 0.0f, 1.0f, 0.0f, 0.0f, size, //
+    size, 0.0f, -size, 0.0f, 1.0f, 0.0f, size, size   //
   };
   // plane VAO
   glGenVertexArrays(1, &VAO);
@@ -32,9 +33,14 @@ Surface::Surface()
   glBindVertexArray(0);
 }
 
-void Surface::render()
+void Surface::_render()
 {
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
+}
+
+float Surface::get_size() const noexcept
+{
+  return _size;
 }
