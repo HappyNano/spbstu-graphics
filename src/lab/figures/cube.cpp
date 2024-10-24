@@ -79,7 +79,7 @@ Cube::Cube(float length):
   glBindVertexArray(0);
 }
 
-void Cube::render()
+void Cube::_render()
 {
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, 36);

@@ -8,6 +8,10 @@ SphereParticleGenerator::SphereParticleGenerator(glm::vec3 center_pos, float rad
   _radius{ radius }
 {}
 
+SphereParticleGenerator::SphereParticleGenerator(const std::shared_ptr< Sphere > & sphere):
+  SphereParticleGenerator(sphere->modelView().get_pos(), sphere->get_radius())
+{}
+
 Particle SphereParticleGenerator::operator()()
 {
   // Генерация случайных углов

@@ -9,6 +9,10 @@ CylinderAttractor::CylinderAttractor(glm::vec3 pos, float radius, float height, 
   _strength{ strength }
 {}
 
+CylinderAttractor::CylinderAttractor(const std::shared_ptr< Cylindre > & cylinder, float strength):
+  CylinderAttractor(cylinder->modelView().get_pos(), cylinder->get_radius(), cylinder->get_height(), strength)
+{}
+
 void CylinderAttractor::operator()(Particle & particle, float dt)
 {
   // Проекция позиции частицы на ось цилиндра (ось Y)

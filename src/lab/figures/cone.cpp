@@ -3,8 +3,11 @@
 #include "glad/glad.h"
 
 #include <cmath>
+#include <vector>
 
-Cone::Cone(float radius, float height)
+Cone::Cone(float radius, float height):
+  _radius{ radius },
+  _height{ height }
 {
   const int sides = 128;
 
@@ -50,9 +53,18 @@ Cone::Cone(float radius, float height)
   glBindVertexArray(0);
 }
 
-void Cone::render()
+void Cone::_render()
 {
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertices_count);
   glBindVertexArray(0);
+}
+
+float Cone::get_radius() const noexcept
+{
+  return _radius;
+}
+float Cone::get_height() const noexcept
+{
+  return _height;
 }

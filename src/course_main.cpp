@@ -86,12 +86,12 @@ float lastFrame = 0.0f;
 glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 
 // figures
-std::unique_ptr< Figure > surface;
-std::unique_ptr< Figure > surface2, surface3;
-std::unique_ptr< Figure > sphere;
-std::unique_ptr< Figure > cube;
-std::unique_ptr< Figure > cylinder;
-std::unique_ptr< Figure > cone;
+std::shared_ptr< Figure > surface;
+std::shared_ptr< Figure > surface2, surface3;
+std::shared_ptr< Figure > sphere;
+std::shared_ptr< Figure > cube;
+std::shared_ptr< Figure > cylinder;
+std::shared_ptr< Figure > cone;
 
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
@@ -99,7 +99,7 @@ void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
 
 void ConfigureShaderAndMatrices();
-void renderScene(Shader & shader, bool render_scene = true);
+void renderScene(Shader & shader);
 
 int main(int argc, char ** argv)
 {
@@ -179,37 +179,37 @@ int main(int argc, char ** argv)
 
   // Figures creating
   // ----------------
-  surface = std::make_unique< Surface >();
+  surface = std::make_shared< Surface >();
 
-  surface2 = std::make_unique< Surface >(1.0f);
+  surface2 = std::make_shared< Surface >(1.0f);
   surface2->modelView().translate({ 0.0f, 5.0f, 0.0f });
 
-  surface3 = std::make_unique< Surface >(1.0f);
+  surface3 = std::make_shared< Surface >(1.0f);
   surface3->modelView().translate({ 0.0f, 2.0f, 0.0f });
 
-  sphere = std::make_unique< Sphere >(0.5f);
+  sphere = std::make_shared< Sphere >(0.5f);
   sphere->modelView().translate({ 3.0f, 2.5f, -1.5f });
 
-  cube = std::make_unique< Cube >(1.0f);
+  cube = std::make_shared< Cube >(1.0f);
   cube->modelView().translate({ 3.0f, 2.5f, 1.5f });
 
-  cylinder = std::make_unique< Cylindre >(0.5f, 1.0f);
+  cylinder = std::make_shared< Cylindre >(0.5f, 1.0f);
   cylinder->modelView().translate({ -2.0f, 3.0f, 0.0f });
 
-  cone = std::make_unique< Cone >(0.5f, 1.0f);
+  cone = std::make_shared< Cone >(0.5f, 1.0f);
   cone->modelView().translate({ 0.0f, 0.5f, 0.0f });
 
   // Particle System
   // ---------------
   // auto anti_attractor = AntiAttractor(glm::vec3(-2.0f, 1.5f, 0.0f), 0.5f);
-  auto surface_attractor1 = SurfaceAttractor(glm::vec3(0.0f, 5.0f, 0.0f), 1.0f, 2.0f);
-  auto surface_attractor2 = SurfaceAttractor(glm::vec3(0.0f, 2.0f, 0.0f), 1.0f, 2.0f);
-  auto cube_collider = CubeCollider(dynamic_cast< Cube & >(*cube), glm::vec3(3.0f, 2.5f, 1.5f), 1.0f);
-  auto sphere_collider = SphereCollider(glm::vec3(3.0f, 2.5f, -1.5f), 0.5f);
-  auto cylinder_attractor = CylinderAttractor(glm::vec3(-2.0f, 3.0f, 0.0f), 0.5f, 1.0f, -4.0f);
+  auto surface_attractor1 = SurfaceAttractor(std::dynamic_pointer_cast< Surface >(surface2), 2.0f);
+  auto surface_attractor2 = SurfaceAttractor(std::dynamic_pointer_cast< Surface >(surface3), 2.0f);
+  auto cube_collider = CubeCollider(std::dynamic_pointer_cast< Cube >(cube));
+  auto sphere_collider = SphereCollider(std::dynamic_pointer_cast< Sphere >(sphere));
+  auto cylinder_attractor = CylinderAttractor(std::dynamic_pointer_cast< Cylindre >(cylinder), -4.0f);
   // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
-  auto sphere_particle_gen = SphereParticleGenerator(glm::vec3(0.0f, 3.5f, 0.0f), 0.5f);
-  auto cone_particle_gen = ConeParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f), 1.0f, 0.5f);
+  auto sphere_particle_gen = SphereParticleGenerator(std::dynamic_pointer_cast< Sphere >(sphere));
+  auto cone_particle_gen = ConeParticleGenerator(std::dynamic_pointer_cast< Cone >(cone));
   auto particles = ParticleSystem(particleShader, 5000,
    [&cone_particle_gen]()
    {
@@ -265,7 +265,7 @@ int main(int argc, char ** argv)
     glActiveTexture(GL_TEXTURE0);
 
     glCullFace(GL_FRONT);
-    renderScene(simpleDepthShader, false);
+    renderScene(simpleDepthShader);
     glCullFace(GL_BACK);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -351,31 +351,17 @@ void ConfigureShaderAndMatrices()
   glTranslatef(0.0f, -0.25f, -2.0f);
 }
 
-void renderScene(Shader & shader, bool render_scene)
+void renderScene(Shader & shader)
 {
-  // floor
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, grass_texture.ID);
-  shader.setMat4("model", surface->modelView().get_modelView());
-  surface->render();
-
-  shader.setMat4("model", cone->modelView().get_modelView());
-  cone->render();
-
-  shader.setMat4("model", surface2->modelView().get_modelView());
-  surface2->render();
-
-  shader.setMat4("model", surface3->modelView().get_modelView());
-  surface2->render();
-
-  shader.setMat4("model", cube->modelView().get_modelView());
-  cube->render();
-
-  shader.setMat4("model", sphere->modelView().get_modelView());
-  sphere->render();
-
-  shader.setMat4("model", cylinder->modelView().get_modelView());
-  cylinder->render();
+  surface->render_modelView(shader);
+  cone->render_modelView(shader);
+  surface2->render_modelView(shader);
+  surface3->render_modelView(shader);
+  cube->render_modelView(shader);
+  sphere->render_modelView(shader);
+  cylinder->render_modelView(shader);
 }
 
 void setupViewport(GLFWwindow * window)

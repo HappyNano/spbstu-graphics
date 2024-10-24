@@ -20,10 +20,10 @@ namespace
   }
 }
 
-CubeCollider::CubeCollider(Cube & cube, glm::vec3 center_pos, float length):
-  _cube(cube),
-  _center_pos{ center_pos },
-  _length{ length }
+CubeCollider::CubeCollider(const std::shared_ptr< Cube > & cube):
+  _cube_ptr{ cube },
+  _center_pos{ cube->modelView().get_pos() },
+  _length{ cube->getLength() }
 {}
 
 void CubeCollider::operator()(Particle & particle, float dt)
@@ -39,7 +39,7 @@ void CubeCollider::operator()(Particle & particle, float dt)
   {
     glm::vec3 plane_normal;
     float min_dist = std::numeric_limits< float >::max();
-    for (auto && plane: _cube.getPlanes())
+    for (auto && plane: _cube_ptr->getPlanes())
     {
       auto res = linePlaneIntersection(particle.pos - last_pos, last_pos, plane.normal, plane.pos + _center_pos);
       if (res.has_value())

@@ -17,14 +17,14 @@ class Cube final: public Figure
  public:
   Cube(float length);
 
-  void render() override;
-
   std::vector< Plane > getPlanes() const;
   float getLength() const noexcept;
 
  private:
   float _length;
   std::vector< Plane > _planes;
+
+  void _render() override;
 };
 
 #endif

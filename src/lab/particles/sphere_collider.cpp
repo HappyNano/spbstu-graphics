@@ -9,6 +9,10 @@ SphereCollider::SphereCollider(glm::vec3 center_pos, float radius):
   _radius{ radius }
 {}
 
+SphereCollider::SphereCollider(const std::shared_ptr< Sphere > & sphere):
+  SphereCollider(sphere->modelView().get_pos(), sphere->get_radius())
+{}
+
 void SphereCollider::operator()(Particle & particle, float dt)
 {
   glm::vec3 last_pos = particle.old_pos.front();

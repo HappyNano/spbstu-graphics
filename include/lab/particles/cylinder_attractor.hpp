@@ -3,6 +3,8 @@
 
 #include "lab/particles/particle.hpp"
 
+#include "lab/figures/cylindre.hpp"
+
 class CylinderAttractor final
 {
  public:
@@ -14,6 +16,7 @@ class CylinderAttractor final
    * @param strength It's strength of attractor
    */
   CylinderAttractor(glm::vec3 pos, float radius, float height, float strength);
+  CylinderAttractor(const std::shared_ptr< Cylindre > & cylinder, float strength);
   ~CylinderAttractor() = default;
 
   void operator()(Particle & particle, float dt);

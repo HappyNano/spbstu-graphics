@@ -2,6 +2,7 @@
 
 #include "glad/glad.h"
 
+#include <vector>
 #include <cmath>
 
 Torus::Torus(float radius_in, float radius_out)
@@ -64,7 +65,7 @@ Torus::Torus(float radius_in, float radius_out)
   glBindVertexArray(0);
 }
 
-void Torus::render()
+void Torus::_render()
 {
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, _vertices_count);

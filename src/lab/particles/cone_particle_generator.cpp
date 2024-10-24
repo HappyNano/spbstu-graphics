@@ -9,6 +9,10 @@ ConeParticleGenerator::ConeParticleGenerator(glm::vec3 center_pos, float height,
   _radius{ radius }
 {}
 
+ConeParticleGenerator::ConeParticleGenerator(const std::shared_ptr< Cone > & cone):
+  ConeParticleGenerator(cone->modelView().get_pos(), cone->get_height(), cone->get_radius())
+{}
+
 Particle ConeParticleGenerator::operator()()
 {
   float theta = static_cast< float >(rand()) / RAND_MAX * 2.0f * M_PI;

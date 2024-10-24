@@ -8,6 +8,10 @@ SurfaceAttractor::SurfaceAttractor(glm::vec3 pos, float size, float strength):
   _strength{ strength }
 {}
 
+SurfaceAttractor::SurfaceAttractor(const std::shared_ptr< Surface > & surface, float strength):
+  SurfaceAttractor(surface->modelView().get_pos(), surface->get_size(), strength)
+{}
+
 void SurfaceAttractor::operator()(Particle & particle, float dt)
 {
   // Половина стороны квадрата плоскости

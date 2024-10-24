@@ -3,10 +3,13 @@
 
 #include "lab/particles/particle.hpp"
 
+#include "lab/figures/sphere.hpp"
+
 class SphereParticleGenerator
 {
  public:
   SphereParticleGenerator(glm::vec3 center_pos, float radius);
+  SphereParticleGenerator(const std::shared_ptr< Sphere > & sphere);
 
   Particle operator()();
 

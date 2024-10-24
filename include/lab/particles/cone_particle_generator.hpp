@@ -3,10 +3,13 @@
 
 #include "lab/particles/particle.hpp"
 
+#include "lab/figures/cone.hpp"
+
 class ConeParticleGenerator
 {
  public:
   ConeParticleGenerator(glm::vec3 center_pos, float height, float radius);
+  ConeParticleGenerator(const std::shared_ptr< Cone > & cone);
 
   Particle operator()();
 

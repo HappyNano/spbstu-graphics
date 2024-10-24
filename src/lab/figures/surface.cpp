@@ -2,7 +2,8 @@
 
 #include "glad/glad.h"
 
-Surface::Surface(float size)
+Surface::Surface(float size):
+  _size(size)
 {
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -32,9 +33,14 @@ Surface::Surface(float size)
   glBindVertexArray(0);
 }
 
-void Surface::render()
+void Surface::_render()
 {
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
+}
+
+float Surface::get_size() const noexcept
+{
+  return _size;
 }

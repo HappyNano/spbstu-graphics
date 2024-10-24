@@ -2,6 +2,7 @@
 #define FIGURES_FIGURE_HPP
 
 #include "lab/model_view.hpp"
+#include "lab/shaders.hpp"
 
 class Figure
 {
@@ -11,7 +12,8 @@ class Figure
   auto modelView() -> ModelView &;
   auto modelView() const -> const ModelView &;
 
-  virtual void render() = 0;
+  void render();
+  void render_modelView(Shader & shader);
 
  protected:
   Figure() = default;
@@ -20,6 +22,8 @@ class Figure
 
   unsigned int VAO;
   unsigned int VBO;
+
+  virtual void _render() = 0;
 };
 
 #endif
