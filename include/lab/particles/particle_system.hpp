@@ -39,6 +39,8 @@ class ParticleSystem
   void update(float dt, size_t newParticles, Func && functor);
   void render();
 
+  size_t aliveCount() const;
+
  private:
   ParticleStorage _particles; ///< Particle Storage
   size_t _amount;             ///< Maximum amount of particles

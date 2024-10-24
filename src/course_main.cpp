@@ -32,24 +32,6 @@
 
 #include "threads/thread_pool.hpp"
 
-/*
-Задание 12.
-1. Эмиттер – точка, направление движения выбирается случайным образом.
-2. Обязательные параметры: скорость увеличивается в зависимости от времени жизни
-Остальные параметры устанавливаются и изменяются по вашему выбору.
-3. След: необязателен
-4. Анти-аттрактор: точка
-*/
-
-/*
-Задание 53.
-1. Эмиттер – цилиндр
-2. Обязательные параметры: прозрачность изменяется в зависимости от времени жизни
-Остальные параметры устанавливаются и изменяются по вашему выбору.
-3. След: присутствует, длина от 2 до 4
-4. Аттрактор: плоскость
-*/
-
 void check(bool error, const std::string & msg, std::function< void(void) > todo = {}) noexcept(false)
 {
   if (error)
@@ -58,11 +40,6 @@ void check(bool error, const std::string & msg, std::function< void(void) > todo
     throw std::logic_error(msg);
   }
 }
-
-Texture2D grass_texture;
-
-// shadow conf
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 // camera
 Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
@@ -77,21 +54,10 @@ float lastFrame = 0.0f;
 // lighting info
 glm::vec3 lightPos(-5.0f, 4.0f, -2.0f);
 
-// figures
-std::shared_ptr< Figure > surface;
-std::shared_ptr< Figure > surface2, surface3;
-std::shared_ptr< Figure > sphere, sphere_gen;
-std::shared_ptr< Figure > cube;
-std::shared_ptr< Figure > cylinder;
-std::shared_ptr< Figure > cone;
-
 void setupViewport(GLFWwindow * window);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow * window, double xoffset, double yoffset);
 void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
-
-void ConfigureShaderAndMatrices();
-void renderScene(Shader & shader);
 
 int main(int argc, char ** argv)
 {
@@ -124,7 +90,8 @@ int main(int argc, char ** argv)
   Text text(ft, "assets/font.ttf");
 
   // Подключение шейдеров и текстур
-  grass_texture = loadTexture("assets/grass.png");
+  // ------------------------------
+  Texture2D grass_texture = loadTexture("assets/grass.png");
   Shader shader("src/shaders/shading.vert", "src/shaders/shading.frag");
   Shader simpleDepthShader("src/shaders/depth.vert", "src/shaders/depth.frag");
   auto font_shader = Shader::makeShared("src/shaders/font.vert", "src/shaders/font.frag");
@@ -183,28 +150,42 @@ int main(int argc, char ** argv)
 
   // Figures creating
   // ----------------
-  surface = std::make_shared< Surface >();
+  auto surface = std::make_shared< Surface >();
 
-  surface2 = std::make_shared< Surface >(1.0f);
+  auto surface2 = std::make_shared< Surface >(1.0f);
   surface2->modelView().translate({ 0.0f, 5.0f, 0.0f });
 
-  surface3 = std::make_shared< Surface >(1.0f);
+  auto surface3 = std::make_shared< Surface >(1.0f);
   surface3->modelView().translate({ 0.0f, 2.0f, 0.0f });
 
-  sphere = std::make_shared< Sphere >(0.5f);
+  auto sphere = std::make_shared< Sphere >(0.5f);
   sphere->modelView().translate({ 3.0f, 2.5f, -1.5f });
 
-  sphere_gen = std::make_shared< Sphere >(0.5f);
+  auto sphere_gen = std::make_shared< Sphere >(0.5f);
   sphere_gen->modelView().translate({ 0.0f, 3.5f, 0.0f });
 
-  cube = std::make_shared< Cube >(1.0f);
+  auto cube = std::make_shared< Cube >(1.0f);
   cube->modelView().translate({ 3.0f, 2.5f, 1.5f });
 
-  cylinder = std::make_shared< Cylindre >(0.5f, 1.0f);
+  auto cylinder = std::make_shared< Cylindre >(0.5f, 1.0f);
   cylinder->modelView().translate({ -2.0f, 3.0f, 0.0f });
 
-  cone = std::make_shared< Cone >(0.5f, 1.0f);
+  auto cone = std::make_shared< Cone >(0.5f, 1.0f);
   cone->modelView().translate({ 0.0f, 0.5f, 0.0f });
+
+  auto render_scene = [&](Shader & shader)
+  {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, grass_texture.ID);
+    surface->render_modelView(shader);
+    // cone->render_modelView(shader);
+    surface2->render_modelView(shader);
+    surface3->render_modelView(shader);
+    cube->render_modelView(shader);
+    sphere->render_modelView(shader);
+    sphere_gen->render_modelView(shader);
+    cylinder->render_modelView(shader);
+  };
 
   // Particle System
   // ---------------
@@ -271,7 +252,7 @@ int main(int argc, char ** argv)
     glActiveTexture(GL_TEXTURE0);
 
     glCullFace(GL_FRONT);
-    renderScene(simpleDepthShader);
+    render_scene(simpleDepthShader);
     glCullFace(GL_BACK);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -287,7 +268,7 @@ int main(int argc, char ** argv)
     shader.setVec3("viewPos", camera.Position);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, depthMap);
-    renderScene(shader);
+    render_scene(shader);
 
     // Particle Scene
     particleShader->use();
@@ -318,6 +299,7 @@ int main(int argc, char ** argv)
     glUseProgram(0);
     // End Particle
     text.render(font_shader, std::to_string(fps.get()), 0.5f, W_HEIGHT - 20.0f, 0.5f, glm::vec3(0.2, 0.8f, 0.2f));
+    text.render(font_shader, std::to_string(particles.aliveCount()), 0.5f, W_HEIGHT - 45.0f, 0.5f, glm::vec3(0.2, 0.8f, 0.2f));
 
     // Конец  отрисовки
     glFlush();
@@ -334,29 +316,6 @@ int main(int argc, char ** argv)
   glfwDestroyWindow(window);
   glfwTerminate();
   return 0;
-}
-
-void ConfigureShaderAndMatrices()
-{
-  // Set up the projection matrix
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(90, (float)W_WIDTH / (float)W_HEIGHT, 0.1f, 1000.0f);
-  glTranslatef(0.0f, -0.25f, -2.0f);
-}
-
-void renderScene(Shader & shader)
-{
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, grass_texture.ID);
-  surface->render_modelView(shader);
-  cone->render_modelView(shader);
-  surface2->render_modelView(shader);
-  surface3->render_modelView(shader);
-  cube->render_modelView(shader);
-  sphere->render_modelView(shader);
-  sphere_gen->render_modelView(shader);
-  cylinder->render_modelView(shader);
 }
 
 void setupViewport(GLFWwindow * window)

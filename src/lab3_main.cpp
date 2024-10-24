@@ -41,9 +41,6 @@ float randf()
 
 Texture2D texture, glass_texture, grass_texture, metal_texture;
 
-// shadow conf
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-
 // camera
 Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
 float lastX = (float)W_WIDTH / 2.0;

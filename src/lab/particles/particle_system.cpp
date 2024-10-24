@@ -67,3 +67,8 @@ void ParticleSystem::_makeNewParticles(size_t count)
     this->_particles.makeParticle(_gen());
   }
 }
+
+size_t ParticleSystem::aliveCount() const
+{
+  return this->_particles.aliveCount();
+}
