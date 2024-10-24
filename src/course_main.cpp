@@ -184,6 +184,7 @@ int main(int argc, char ** argv)
   auto sphere_collider = SphereCollider(std::dynamic_pointer_cast< Sphere >(sphere));
   auto cylinder_attractor = CylinderAttractor(std::dynamic_pointer_cast< Cylindre >(cylinder), -4.0f);
   // auto point_particle_gen = PointParticleGenerator(glm::vec3(0.0f, 0.5f, 0.0f));
+  auto cylindre_particle_gen = CylindreParticleGenerator(std::dynamic_pointer_cast< Cylindre >(cylinder));
   auto sphere_particle_gen = SphereParticleGenerator(std::dynamic_pointer_cast< Sphere >(sphere_gen));
   auto cone_particle_gen = ConeParticleGenerator(std::dynamic_pointer_cast< Cone >(cone));
   auto particles = ParticleSystem(particleShader, 5000,

@@ -9,6 +9,10 @@ CylindreParticleGenerator::CylindreParticleGenerator(glm::vec3 center_pos, float
   _radius{ radius }
 {}
 
+CylindreParticleGenerator::CylindreParticleGenerator(const std::shared_ptr< Cylindre > & cylindre):
+  CylindreParticleGenerator(cylindre->modelView().get_pos(), cylindre->get_height(), cylindre->get_radius())
+{}
+
 Particle CylindreParticleGenerator::operator()()
 {
   float theta = static_cast< float >(rand()) / RAND_MAX * 2.0f * M_PI;
